@@ -26,7 +26,7 @@ const CONFIG = {
     { min:100, max:100, nombre:'👑 Leyenda Mágica' },
   ],
   titulosCertificado: [
-    { xpMin:0,    titulo:'Creador en Ciernes' },
+    { xpMin:0,    titulo:'Creador en Ascenso' },
     { xpMin:250,  titulo:'Creador Talentoso' },
     { xpMin:450,  titulo:'Gran Creador Mágico' },
     { xpMin:900,  titulo:'✨ Leyenda del Club Mágico ✨' },
@@ -949,22 +949,28 @@ function mezclarIdeas() {
 ═══════════════════════════════════════════════════════════════*/
 function crearEstadoBq() {
   return {
-    iniciado:   false,
-    dragging:   false,
-    enVuelo:    false,
-    anim:       null,
-    tirosTotal: 5,
-    tirosUsados:0,
-    encestes:   0,
+    iniciado:       false,
+    dragging:       false,
+    enVuelo:        false,
+    anim:           null,
+    animIdle:       null,
+    tirosTotal:     5,
+    tirosUsados:    0,
+    encestes:       0,
     encestesNeeded: 3,
-    ganado:     false,
-    ball:       { x:160, y:210, r:18, vx:0, vy:0 },
-    aro:        { x:160, y:62, innerW:48 },
-    dragStart:  { x:0, y:0 },
-    dragCurr:   { x:0, y:0 },
+    ganado:         false,
+    ball: { x:170, y:250, r:22, vx:0, vy:0 },
+    aro:  { x:170, y:68, innerW:54 },
+    dragStart: { x:0, y:0 },
+    dragCurr:  { x:0, y:0 },
     ideaActual: '',
-    ctx:        null,
-    canvas:     null,
+    ctx:    null,
+    canvas: null,
+    estela: [],
+    particulas: [],
+    pulso: 1,
+    portalGlow: 0,
+    tick: 0,
   };
 }
 let bqState = crearEstadoBq();
@@ -979,148 +985,268 @@ function actualizarMarcador() {
 function inicializarBasquet() {
   const canvas = document.getElementById('basquet-canvas');
   if (!canvas) return;
-  if (bqState.iniciado && !bqState.ganado) return; // ya iniciado y activo
-  if (yaCompleto('basquet')) return; // ya completó esta actividad
+  if (bqState.iniciado && !bqState.ganado) return;
+  if (yaCompleto('basquet')) return;
+
+  cancelAnimationFrame(bqState.anim);
+  cancelAnimationFrame(bqState.animIdle);
 
   bqState = crearEstadoBq();
-  bqState.canvas  = canvas;
-  bqState.ctx     = canvas.getContext('2d');
+  bqState.canvas = canvas;
+  bqState.ctx    = canvas.getContext('2d');
   bqState.ideaActual = IDEAS_MAGICAS_BASQUET[Math.floor(Math.random()*IDEAS_MAGICAS_BASQUET.length)];
-  bqState.ball.x  = canvas.width / 2;
-  bqState.ball.y  = canvas.height - 45;
+  bqState.ball.x = canvas.width / 2;
+  bqState.ball.y = canvas.height - 50;
+  bqState.aro.x  = canvas.width / 2;
   bqState.iniciado = true;
 
+  const card = document.getElementById('bq-resultado-card');
+  if (card) card.classList.add('oculto');
+
   actualizarMarcador();
-  dibujarBq();
   registrarEventosBq(canvas);
+  loopIdleBq();
+}
+
+function loopIdleBq() {
+  const bq = bqState;
+  if (!bq.canvas || !bq.ctx) return;
+  bq.tick++;
+  bq.pulso = Math.sin(bq.tick * 0.07) * 0.1 + 1;
+  bq.particulas = bq.particulas.filter(p => p.vida > 0);
+  bq.particulas.forEach(p => {
+    p.x += p.vx; p.y += p.vy; p.vy += 0.15; p.vida -= 3; p.r *= 0.97;
+  });
+  if (bq.portalGlow > 0) bq.portalGlow -= 2;
+  if (!bq.enVuelo) dibujarBq();
+  if (!bq.ganado) bq.animIdle = requestAnimationFrame(loopIdleBq);
 }
 
 function reiniciarBasquet() {
   if (yaCompleto('basquet')) return;
+  cancelAnimationFrame(bqState.anim);
+  cancelAnimationFrame(bqState.animIdle);
+
   const btn = document.getElementById('btn-reintentar-basquet');
   if (btn) btn.classList.add('oculto');
+  const card = document.getElementById('bq-resultado-card');
+  if (card) card.classList.add('oculto');
   const msgEl = document.getElementById('basquet-mensaje');
-  if (msgEl) { msgEl.style.display='none'; msgEl.className='basquet-mensaje'; }
-  cancelAnimationFrame(bqState.anim);
+  if (msgEl) { msgEl.style.display = 'none'; }
+
   bqState.tirosUsados = 0;
   bqState.encestes    = 0;
   bqState.enVuelo     = false;
   bqState.dragging    = false;
+  bqState.ganado      = false;
+  bqState.estela      = [];
+  bqState.particulas  = [];
+  bqState.portalGlow  = 0;
   bqState.ideaActual  = IDEAS_MAGICAS_BASQUET[Math.floor(Math.random()*IDEAS_MAGICAS_BASQUET.length)];
-  const canvas = bqState.canvas;
-  if (canvas) { bqState.ball = {x:canvas.width/2, y:canvas.height-45, r:18, vx:0, vy:0}; }
+  const cv = bqState.canvas;
+  if (cv) bqState.ball = { x: cv.width/2, y: cv.height-50, r:22, vx:0, vy:0 };
   actualizarMarcador();
-  dibujarBq();
+  loopIdleBq();
 }
 
 function registrarEventosBq(canvas) {
-  // Remover listeners anteriores clonando el nodo
   const newCanvas = canvas.cloneNode(true);
   canvas.parentNode.replaceChild(newCanvas, canvas);
   bqState.canvas = newCanvas;
   bqState.ctx    = newCanvas.getContext('2d');
 
   const W = newCanvas.width, H = newCanvas.height;
-  function getPos(e,rect) { return {x:(e.clientX-rect.left)*(W/rect.width), y:(e.clientY-rect.top)*(H/rect.height)}; }
-  function getTPos(e,rect) { const t=e.touches[0]; return {x:(t.clientX-rect.left)*(W/rect.width), y:(t.clientY-rect.top)*(H/rect.height)}; }
-  function cercaBola(px,py) { const dx=px-bqState.ball.x,dy=py-bqState.ball.y; return Math.sqrt(dx*dx+dy*dy)<bqState.ball.r+16; }
+  function scP(cx,cy,rect) { return {x:(cx-rect.left)*(W/rect.width), y:(cy-rect.top)*(H/rect.height)}; }
+  function getPos(ev,rect)  { return scP(ev.clientX, ev.clientY, rect); }
+  function getTPos(ev,rect) { const t=ev.touches[0]; return scP(t.clientX, t.clientY, rect); }
+  function cercaBola(px,py) {
+    const dx=px-bqState.ball.x, dy=py-bqState.ball.y;
+    return Math.sqrt(dx*dx+dy*dy) < bqState.ball.r + 22;
+  }
   function lanzar() {
-    if (bqState.ganado||bqState.enVuelo) return;
-    const dx=bqState.dragCurr.x-bqState.dragStart.x, dy=bqState.dragCurr.y-bqState.dragStart.y;
-    if (Math.abs(dx)<4&&Math.abs(dy)<4) { bqState.dragging=false; return; }
-    bqState.ball.vx=-dx*0.22; bqState.ball.vy=-dy*0.22;
-    bqState.enVuelo=true; bqState.dragging=false;
+    if (bqState.ganado || bqState.enVuelo) return;
+    const dx = bqState.dragCurr.x - bqState.dragStart.x;
+    const dy = bqState.dragCurr.y - bqState.dragStart.y;
+    if (Math.abs(dx) < 5 && Math.abs(dy) < 5) { bqState.dragging = false; return; }
+    bqState.ball.vx = -dx * 0.21;
+    bqState.ball.vy = -dy * 0.21;
+    bqState.enVuelo  = true;
+    bqState.dragging = false;
+    bqState.estela   = [];
     bqState.tirosUsados++;
     actualizarMarcador();
-    const instrEl=document.getElementById('basquet-instruccion');
-    if(instrEl) instrEl.style.display='none';
-    bqState.anim=requestAnimationFrame(fisicaBq);
+    const instrEl = document.getElementById('basquet-instruccion');
+    if (instrEl) instrEl.style.opacity = '0';
+    cancelAnimationFrame(bqState.animIdle);
+    bqState.anim = requestAnimationFrame(fisicaBq);
   }
 
   newCanvas.addEventListener('mousedown', ev => {
-    if(bqState.ganado||bqState.enVuelo) return;
+    if (bqState.ganado || bqState.enVuelo) return;
     const r=newCanvas.getBoundingClientRect(), pos=getPos(ev,r);
-    if(cercaBola(pos.x,pos.y)){bqState.dragging=true;bqState.dragStart={...pos};bqState.dragCurr={...pos};}
+    if (cercaBola(pos.x,pos.y)) { bqState.dragging=true; bqState.dragStart={...pos}; bqState.dragCurr={...pos}; }
   });
   newCanvas.addEventListener('mousemove', ev => {
-    if(!bqState.dragging) return;
-    bqState.dragCurr=getPos(ev,newCanvas.getBoundingClientRect()); dibujarBq();
+    if (!bqState.dragging) return;
+    bqState.dragCurr = getPos(ev, newCanvas.getBoundingClientRect()); dibujarBq();
   });
-  newCanvas.addEventListener('mouseup',   () => { if(bqState.dragging) lanzar(); });
-  newCanvas.addEventListener('mouseleave',() => { if(bqState.dragging){bqState.dragging=false;dibujarBq();} });
-  newCanvas.addEventListener('touchstart',ev=>{ ev.preventDefault(); if(bqState.ganado||bqState.enVuelo) return; const r=newCanvas.getBoundingClientRect(),pos=getTPos(ev,r); if(cercaBola(pos.x,pos.y)){bqState.dragging=true;bqState.dragStart={...pos};bqState.dragCurr={...pos};} },{passive:false});
-  newCanvas.addEventListener('touchmove', ev=>{ ev.preventDefault(); if(!bqState.dragging) return; bqState.dragCurr=getTPos(ev,newCanvas.getBoundingClientRect()); dibujarBq(); },{passive:false});
-  newCanvas.addEventListener('touchend',  ev=>{ ev.preventDefault(); if(bqState.dragging) lanzar(); },{passive:false});
+  newCanvas.addEventListener('mouseup',    () => { if (bqState.dragging) lanzar(); });
+  newCanvas.addEventListener('mouseleave', () => { if (bqState.dragging) { bqState.dragging=false; dibujarBq(); } });
+  newCanvas.addEventListener('touchstart', ev => {
+    ev.preventDefault();
+    if (bqState.ganado || bqState.enVuelo) return;
+    const r=newCanvas.getBoundingClientRect(), pos=getTPos(ev,r);
+    if (cercaBola(pos.x,pos.y)) { bqState.dragging=true; bqState.dragStart={...pos}; bqState.dragCurr={...pos}; }
+  }, {passive:false});
+  newCanvas.addEventListener('touchmove', ev => {
+    ev.preventDefault();
+    if (!bqState.dragging) return;
+    bqState.dragCurr = getTPos(ev, newCanvas.getBoundingClientRect()); dibujarBq();
+  }, {passive:false});
+  newCanvas.addEventListener('touchend', ev => {
+    ev.preventDefault(); if (bqState.dragging) lanzar();
+  }, {passive:false});
 
   dibujarBq();
 }
 
 function fisicaBq() {
   const bq = bqState;
-  if (!bq.enVuelo) return;
+  if (!bq.enVuelo || !bq.canvas) return;
   const W=bq.canvas.width, H=bq.canvas.height;
+
+  bq.estela.push({x:bq.ball.x, y:bq.ball.y, r:bq.ball.r});
+  if (bq.estela.length > 11) bq.estela.shift();
+
   bq.ball.x  += bq.ball.vx;
   bq.ball.y  += bq.ball.vy;
-  bq.ball.vy += 0.38;
-  bq.ball.vx *= 0.995;
-  if (bq.ball.x - bq.ball.r < 0)  { bq.ball.x=bq.ball.r; bq.ball.vx*=-0.6; }
-  if (bq.ball.x + bq.ball.r > W)  { bq.ball.x=W-bq.ball.r; bq.ball.vx*=-0.6; }
+  bq.ball.vy += 0.36;
+  bq.ball.vx *= 0.993;
 
-  const aroX1=bq.aro.x-bq.aro.innerW/2, aroX2=bq.aro.x+bq.aro.innerW/2, aroY=bq.aro.y+10;
-  const entraX=bq.ball.x>aroX1+bq.ball.r*0.4 && bq.ball.x<aroX2-bq.ball.r*0.4;
-  const pasaY =bq.ball.y>aroY && bq.ball.y<aroY+30;
+  if (bq.ball.x - bq.ball.r < 0) { bq.ball.x=bq.ball.r; bq.ball.vx*=-0.55; }
+  if (bq.ball.x + bq.ball.r > W) { bq.ball.x=W-bq.ball.r; bq.ball.vx*=-0.55; }
 
-  if (entraX && pasaY && bq.ball.vy>0) {
+  bq.particulas = bq.particulas.filter(p => p.vida > 0);
+  bq.particulas.forEach(p => { p.x+=p.vx; p.y+=p.vy; p.vy+=0.2; p.vida-=4; p.r*=0.96; });
+  if (bq.portalGlow > 0) bq.portalGlow -= 2;
+  bq.tick++;
+
+  const aroX1 = bq.aro.x - bq.aro.innerW/2;
+  const aroX2 = bq.aro.x + bq.aro.innerW/2;
+  const aroY  = bq.aro.y + 12;
+  const entraX   = bq.ball.x > aroX1 + bq.ball.r*0.35 && bq.ball.x < aroX2 - bq.ball.r*0.35;
+  const pasandoY = bq.ball.y > aroY && bq.ball.y < aroY + 35;
+
+  if (entraX && pasandoY && bq.ball.vy > 0) {
     bq.encestes++;
-    bq.enVuelo=false;
+    bq.enVuelo   = false;
+    bq.portalGlow = 100;
     cancelAnimationFrame(bq.anim);
+    crearParticulasBq(bq.aro.x, bq.aro.y + 12);
     actualizarMarcador();
+    dibujarBq();
     if (bq.encestes >= bq.encestesNeeded) {
       bq.ganado = true;
-      showBqMsg('¡Encestaste 3 ideas mágicas! 🎯✨', true);
+      setTimeout(() => mostrarTarjetaBq(true), 700);
     } else {
       const restantes = bq.tirosTotal - bq.tirosUsados;
-      showBqMsg(`¡Enceste! ${bq.encestes}/${bq.encestesNeeded} ✅ — ${restantes} tiro${restantes!==1?'s':''} restante${restantes!==1?'s':''}`, false, true);
+      showBqMsg(`✅ ¡Enceste! ${bq.encestes}/${bq.encestesNeeded} — quedan ${restantes} tiro${restantes!==1?'s':''}`, 'enceste');
+      setTimeout(() => loopIdleBq(), 1700);
     }
     return;
   }
-  if (bq.ball.y > H + 30) {
-    bq.enVuelo=false;
+
+  if (bq.ball.y > H + 40) {
+    bq.enVuelo = false;
     cancelAnimationFrame(bq.anim);
     const restantes = bq.tirosTotal - bq.tirosUsados;
     if (restantes <= 0 && bq.encestes < bq.encestesNeeded) {
-      showBqMsg(`Fallaste todos los tiros. ¡Probá otra vez! 💪`, false, false, true);
+      dibujarBq();
+      setTimeout(() => mostrarTarjetaBq(false), 500);
     } else {
-      showBqMsg(`¡Casi! ${restantes} tiro${restantes!==1?'s':''} restante${restantes!==1?'s':''} 💪`, false);
+      const msgs = [
+        `¡Casi! Tu idea pasó cerquita. ${restantes} tiro${restantes!==1?'s':''} restante${restantes!==1?'s':''}`,
+        `¡Ajustá tu magia! Quedan ${restantes} intento${restantes!==1?'s':''}`,
+        `¡Cerca del portal! ${restantes} tiro${restantes!==1?'s':''} más`,
+      ];
+      showBqMsg(msgs[Math.floor(Math.random()*msgs.length)], 'fallo');
+      setTimeout(() => {
+        const cv = bqState.canvas;
+        if (cv) bqState.ball = {x:cv.width/2+(Math.random()-.5)*30, y:cv.height-50, r:22, vx:0, vy:0};
+        bqState.estela = [];
+        const instrEl = document.getElementById('basquet-instruccion');
+        if (instrEl) instrEl.style.opacity = '1';
+        loopIdleBq();
+      }, 1400);
     }
     return;
   }
+
   dibujarBq();
   bq.anim = requestAnimationFrame(fisicaBq);
 }
 
-function showBqMsg(msg, esExito, esEnceste, esFin) {
-  const msgEl = document.getElementById('basquet-mensaje');
-  if (!msgEl) return;
-  msgEl.textContent = msg;
-  msgEl.className   = 'basquet-mensaje ' + (esExito?'exito':esEnceste?'enceste':'fallo');
-  msgEl.style.display = 'block';
-  const delay = esExito ? 2000 : 1400;
-  setTimeout(() => {
-    msgEl.style.display = 'none';
-    if (esExito) {
-      onBqGanado();
-    } else if (esFin) {
-      const btn = document.getElementById('btn-reintentar-basquet');
-      if (btn) btn.classList.remove('oculto');
-      dibujarBq();
-    } else {
-      // resetear pelota para siguiente tiro
-      const canvas=bqState.canvas;
-      if (canvas) bqState.ball = {x:canvas.width/2+(Math.random()-.5)*20, y:canvas.height-45, r:18, vx:0, vy:0};
-      dibujarBq();
-    }
-  }, delay);
+function crearParticulasBq(cx, cy) {
+  const cols = ['#f5c842','#00d4a8','#c4a8ff','#ff6bb5','#ffffff','#a0f0ff'];
+  for (let i = 0; i < 24; i++) {
+    const ang = Math.random() * Math.PI * 2;
+    const spd = 1.5 + Math.random() * 4.5;
+    bqState.particulas.push({
+      x:cx, y:cy,
+      vx:Math.cos(ang)*spd, vy:Math.sin(ang)*spd-2.5,
+      r: 2.5 + Math.random() * 4.5,
+      vida: 80 + Math.random() * 50,
+      color: cols[Math.floor(Math.random()*cols.length)],
+    });
+  }
+}
+
+function showBqMsg(msg, tipo) {
+  const el = document.getElementById('basquet-mensaje');
+  if (!el) return;
+  el.textContent = msg;
+  el.className   = 'bq-overlay-msg bq-msg-' + tipo;
+  el.style.display = 'block';
+  setTimeout(() => { el.style.display = 'none'; }, 1600);
+}
+
+function mostrarTarjetaBq(ganado) {
+  const card   = document.getElementById('bq-resultado-card');
+  const icono  = document.getElementById('bq-res-icono');
+  const titulo = document.getElementById('bq-res-titulo');
+  const texto  = document.getElementById('bq-res-texto');
+  const recomp = document.getElementById('bq-res-recompensa');
+  const btn    = document.getElementById('bq-res-btn');
+  if (!card) return;
+
+  if (ganado) {
+    if (icono)  icono.textContent  = '🏆';
+    if (titulo) titulo.textContent = '¡Portal activado!';
+    if (texto)  texto.textContent  = 'Lograste encestar tus ideas mágicas. Tu creatividad abrió el camino.';
+    if (recomp && !yaCompleto('basquet')) recomp.classList.remove('oculto');
+    else if (recomp) recomp.classList.add('oculto');
+    if (btn) { btn.textContent='Continuar misión →'; btn.className='bq-res-btn bq-res-btn-victoria'; }
+  } else {
+    if (icono)  icono.textContent  = '💫';
+    if (titulo) titulo.textContent = '¡Casi lo lográs!';
+    if (texto)  texto.textContent  = 'Tus ideas estuvieron cerca del portal. ¡Tu magia sigue creciendo!';
+    if (recomp) recomp.classList.add('oculto');
+    if (btn) { btn.textContent='🔄 Volver a intentar'; btn.className='bq-res-btn bq-res-btn-reintento'; }
+  }
+  card.classList.remove('oculto');
+  card.classList.add('bq-card-entrando');
+  setTimeout(() => card.classList.remove('bq-card-entrando'), 600);
+}
+
+function onBqBotonResultado() {
+  const card = document.getElementById('bq-resultado-card');
+  if (bqState.ganado) {
+    if (card) card.classList.add('oculto');
+    onBqGanado();
+  } else {
+    if (card) card.classList.add('oculto');
+    reiniciarBasquet();
+  }
 }
 
 function onBqGanado() {
@@ -1128,7 +1254,9 @@ function onBqGanado() {
   if (!yaCompleto('basquet')) {
     marcarAct('basquet');
     mostrarRes('resultado-basquet');
-    addEstrellaM3(40); desbloquearLogro('basquet_ok'); desbloquearSig('act-3-3');
+    addEstrellaM3(40);
+    desbloquearLogro('basquet_ok');
+    desbloquearSig('act-3-3');
   }
 }
 
@@ -1136,78 +1264,214 @@ function dibujarBq() {
   const bq = bqState;
   if (!bq.ctx || !bq.canvas) return;
   const ctx=bq.ctx, W=bq.canvas.width, H=bq.canvas.height;
-  ctx.clearRect(0,0,W,H);
+  ctx.clearRect(0, 0, W, H);
 
-  // Fondo
-  const bg=ctx.createLinearGradient(0,0,0,H);
-  bg.addColorStop(0,'#0d0125'); bg.addColorStop(1,'#1a0533');
-  ctx.fillStyle=bg; ctx.fillRect(0,0,W,H);
+  /* Fondo galáctico */
+  const bgGrad = ctx.createLinearGradient(0,0,W,H);
+  bgGrad.addColorStop(0,   '#050010');
+  bgGrad.addColorStop(0.4, '#0d0125');
+  bgGrad.addColorStop(1,   '#140538');
+  ctx.fillStyle = bgGrad;
+  ctx.fillRect(0, 0, W, H);
 
-  // Estrellas
-  ctx.fillStyle='rgba(255,255,255,.4)';
-  [[20,30],[60,80],[280,40],[300,120],[40,180],[200,20],[150,200],[240,160]].forEach(([sx,sy])=>{
-    ctx.beginPath(); ctx.arc(sx,sy,1.2,0,Math.PI*2); ctx.fill();
+  /* Nebulosas sutiles */
+  const neb1 = ctx.createRadialGradient(W*.3,H*.3,10, W*.3,H*.3,W*.6);
+  neb1.addColorStop(0,'rgba(100,30,180,.12)'); neb1.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle=neb1; ctx.fillRect(0,0,W,H);
+  const neb2 = ctx.createRadialGradient(W*.75,H*.6,5, W*.75,H*.6,W*.5);
+  neb2.addColorStop(0,'rgba(0,180,140,.08)'); neb2.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle=neb2; ctx.fillRect(0,0,W,H);
+
+  /* Estrellas con parpadeo */
+  const stars = [
+    [22,28,1.4,.7],[58,75,1.0,.5],[285,38,1.6,.8],[298,115,1.1,.6],
+    [42,175,1.3,.7],[198,18,1.8,.9],[148,195,1.0,.5],[238,155,1.5,.7],
+    [310,200,1.2,.6],[80,130,1.0,.4],[260,80,1.3,.6],[120,60,.9,.4],
+    [15,240,1.1,.5],[180,240,1.0,.4],[70,210,1.4,.7],[325,170,1.0,.5],
+  ];
+  stars.forEach(([sx,sy,sr,al]) => {
+    const tw = .5 + Math.abs(Math.sin(bq.tick*.025 + sx*.09))*.5;
+    ctx.fillStyle = `rgba(255,255,255,${al*tw})`;
+    ctx.beginPath(); ctx.arc(sx,sy,sr,0,Math.PI*2); ctx.fill();
   });
 
-  const ax=bq.aro.x, ay=bq.aro.y;
-  // Tablero
-  ctx.fillStyle='rgba(155,89,245,.2)'; ctx.strokeStyle='rgba(155,89,245,.5)'; ctx.lineWidth=2;
+  /* Partículas flotando */
+  bq.particulas.forEach(p => {
+    const al = Math.max(0, p.vida/130);
+    ctx.globalAlpha = al;
+    ctx.fillStyle = p.color;
+    ctx.beginPath(); ctx.arc(p.x,p.y,Math.max(.4,p.r),0,Math.PI*2); ctx.fill();
+  });
+  ctx.globalAlpha = 1;
+
+  /* Línea de lanzamiento */
+  const lzGrad = ctx.createLinearGradient(0,H-30,W,H-30);
+  lzGrad.addColorStop(0,'rgba(196,168,255,0)');
+  lzGrad.addColorStop(.2,'rgba(196,168,255,.22)');
+  lzGrad.addColorStop(.8,'rgba(196,168,255,.22)');
+  lzGrad.addColorStop(1,'rgba(196,168,255,0)');
+  ctx.strokeStyle=lzGrad; ctx.lineWidth=1; ctx.setLineDash([8,5]);
+  ctx.beginPath(); ctx.moveTo(0,H-30); ctx.lineTo(W,H-30); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle='rgba(196,168,255,.28)'; ctx.font='9px Nunito,sans-serif'; ctx.textAlign='center';
+  ctx.fillText('ZONA DE LANZAMIENTO', W/2, H-16);
+
+  /* Portal / Aro */
+  const ax=bq.aro.x, ay=bq.aro.y, gi=bq.portalGlow/100;
+  const hR = bq.aro.innerW*.75 + gi*22;
+  const haloG = ctx.createRadialGradient(ax,ay+12,0, ax,ay+12,hR+32);
+  haloG.addColorStop(0,`rgba(245,200,66,${.07+gi*.3})`);
+  haloG.addColorStop(.5,`rgba(245,200,66,${.03+gi*.12})`);
+  haloG.addColorStop(1,'rgba(245,200,66,0)');
+  ctx.fillStyle=haloG; ctx.beginPath(); ctx.arc(ax,ay+12,hR+32,0,Math.PI*2); ctx.fill();
+
+  /* Tablero */
+  const brdG = ctx.createLinearGradient(ax-54,ay-44, ax+54,ay);
+  brdG.addColorStop(0,'rgba(80,20,140,.5)'); brdG.addColorStop(1,'rgba(40,10,80,.4)');
+  ctx.fillStyle=brdG;
+  ctx.strokeStyle=`rgba(155,89,245,${.4+gi*.4})`; ctx.lineWidth=1.5;
+  ctx.shadowColor='rgba(155,89,245,.4)'; ctx.shadowBlur=6+gi*10;
   ctx.beginPath();
-  if (ctx.roundRect) ctx.roundRect(ax-50,ay-38,100,36,4); else ctx.rect(ax-50,ay-38,100,36);
-  ctx.fill(); ctx.stroke();
-  ctx.fillStyle='rgba(245,200,66,.8)'; ctx.font='bold 9px Nunito,sans-serif'; ctx.textAlign='center';
-  ctx.fillText('✨ PORTAL MÁGICO', ax, ay-18);
+  if(ctx.roundRect) ctx.roundRect(ax-54,ay-44,108,40,6); else ctx.rect(ax-54,ay-44,108,40);
+  ctx.fill(); ctx.stroke(); ctx.shadowBlur=0;
+  ctx.fillStyle=`rgba(245,200,66,${.85+gi*.15})`; ctx.font='bold 10px Nunito,sans-serif'; ctx.textAlign='center';
+  ctx.fillText('✨ PORTAL MÁGICO ✨', ax, ay-24);
+  ctx.fillStyle='rgba(196,168,255,.65)'; ctx.font='8px Nunito,sans-serif';
+  ctx.fillText(`${bq.encestes}/${bq.encestesNeeded} ideas encestadas`, ax, ay-10);
 
-  // Soporte
-  ctx.strokeStyle='#f5c842'; ctx.lineWidth=3;
-  ctx.beginPath(); ctx.moveTo(ax,ay-2); ctx.lineTo(ax,ay+30); ctx.stroke();
+  /* Soporte */
+  const sopG = ctx.createLinearGradient(ax,ay, ax,ay+34);
+  sopG.addColorStop(0,'#f5c842'); sopG.addColorStop(1,'rgba(245,200,66,.25)');
+  ctx.strokeStyle=sopG; ctx.lineWidth=3;
+  ctx.shadowColor='rgba(245,200,66,.5)'; ctx.shadowBlur=4;
+  ctx.beginPath(); ctx.moveTo(ax,ay-3); ctx.lineTo(ax,ay+34); ctx.stroke(); ctx.shadowBlur=0;
 
-  // Aro
-  ctx.shadowColor='#f5c842'; ctx.shadowBlur=10;
-  ctx.strokeStyle='#f5c842'; ctx.lineWidth=4;
-  ctx.beginPath(); ctx.moveTo(ax-bq.aro.innerW/2,ay+10); ctx.lineTo(ax+bq.aro.innerW/2,ay+10); ctx.stroke();
+  /* Anillo del aro con ellipse (profundidad 3D) */
+  const aroGlow = 8 + gi*20;
+  ctx.shadowColor=`rgba(245,200,66,${.7+gi*.3})`; ctx.shadowBlur=aroGlow;
+  ctx.strokeStyle=`rgba(245,200,66,${.82+gi*.18})`; ctx.lineWidth=5;
+  ctx.beginPath(); ctx.ellipse(ax,ay+12, bq.aro.innerW/2+4, 7.5, 0,0,Math.PI*2); ctx.stroke();
+  ctx.strokeStyle=`rgba(255,240,150,${.45+gi*.4})`; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.ellipse(ax,ay+12, bq.aro.innerW/2, 5.5, 0,0,Math.PI*2); ctx.stroke();
   ctx.shadowBlur=0;
 
-  // Red
-  ctx.strokeStyle='rgba(245,200,66,.35)'; ctx.lineWidth=1.5;
-  for (let ri=0;ri<5;ri++) {
-    const rx=ax-bq.aro.innerW/2+(ri/4)*bq.aro.innerW;
-    ctx.beginPath(); ctx.moveTo(rx,ay+10); ctx.lineTo(rx+(ri-2)*2,ay+34); ctx.stroke();
+  /* Red mágica */
+  const ra=.28+gi*.3;
+  ctx.strokeStyle=`rgba(245,200,66,${ra})`; ctx.lineWidth=1.2;
+  const nL=ax-bq.aro.innerW/2-2, nR=ax+bq.aro.innerW/2+2, nT=ay+18, nB=ay+46;
+  for(let i=0;i<=5;i++){
+    const tx=nL+((nR-nL)/5)*i, bx=ax+(tx-ax)*.48;
+    ctx.beginPath(); ctx.moveTo(tx,nT); ctx.lineTo(bx,nB); ctx.stroke();
   }
-  ctx.beginPath(); ctx.moveTo(ax-bq.aro.innerW/2,ay+22); ctx.lineTo(ax+bq.aro.innerW/2,ay+22); ctx.stroke();
+  for(let i=0;i<3;i++){
+    const ry=nT+((nB-nT)/3)*i+6;
+    const xl=nL+(ax-nL)*(i*.14), xr=nR-(nR-ax)*(i*.14);
+    ctx.beginPath(); ctx.moveTo(xl,ry); ctx.lineTo(xr,ry); ctx.stroke();
+  }
 
-  // Línea de tiro
-  ctx.strokeStyle='rgba(196,168,255,.2)'; ctx.lineWidth=1; ctx.setLineDash([6,4]);
-  ctx.beginPath(); ctx.moveTo(0,H-26); ctx.lineTo(W,H-26); ctx.stroke(); ctx.setLineDash([]);
-
-  // Flecha de dirección
-  if (bq.dragging) {
-    const dx=bq.dragCurr.x-bq.dragStart.x, dy=bq.dragCurr.y-bq.dragStart.y, len=Math.sqrt(dx*dx+dy*dy);
-    if (len>8) {
-      const nx=-dx/len, ny=-dy/len, maxLen=Math.min(len,80);
-      ctx.strokeStyle='rgba(0,212,168,.7)'; ctx.lineWidth=2.5; ctx.setLineDash([5,3]);
-      ctx.beginPath(); ctx.moveTo(bq.ball.x,bq.ball.y); ctx.lineTo(bq.ball.x+nx*maxLen,bq.ball.y+ny*maxLen); ctx.stroke(); ctx.setLineDash([]);
-      const arrowX=bq.ball.x+nx*maxLen, arrowY=bq.ball.y+ny*maxLen, ang=Math.atan2(-dy,-dx);
-      ctx.fillStyle='rgba(0,212,168,.7)'; ctx.save(); ctx.translate(arrowX,arrowY); ctx.rotate(ang);
-      ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(-10,-5); ctx.lineTo(-10,5); ctx.closePath(); ctx.fill(); ctx.restore();
+  /* Rayos al encestar */
+  if(gi>.3){
+    for(let r=0;r<8;r++){
+      const ang=(r/8)*Math.PI*2+bq.tick*.05, rl=18+gi*26;
+      ctx.strokeStyle=`rgba(245,200,66,${gi*.55})`; ctx.lineWidth=1.5;
+      ctx.beginPath();
+      ctx.moveTo(ax+Math.cos(ang)*28,ay+12+Math.sin(ang)*9);
+      ctx.lineTo(ax+Math.cos(ang)*(28+rl),ay+12+Math.sin(ang)*(9+rl*.32));
+      ctx.stroke();
     }
   }
 
-  // Pelota
-  const bg2=ctx.createRadialGradient(bq.ball.x-5,bq.ball.y-5,2,bq.ball.x,bq.ball.y,bq.ball.r);
-  bg2.addColorStop(0,'#c4a8ff'); bg2.addColorStop(.4,'#9b59f5'); bg2.addColorStop(1,'#4a1a8a');
-  ctx.shadowColor='#9b59f5'; ctx.shadowBlur=16;
-  ctx.fillStyle=bg2; ctx.beginPath(); ctx.arc(bq.ball.x,bq.ball.y,bq.ball.r,0,Math.PI*2); ctx.fill(); ctx.shadowBlur=0;
-  ctx.fillStyle='rgba(255,255,255,.35)'; ctx.beginPath(); ctx.ellipse(bq.ball.x-5,bq.ball.y-6,6,4,-.5,0,Math.PI*2); ctx.fill();
-  ctx.fillStyle='rgba(255,255,255,.7)'; ctx.font='11px sans-serif'; ctx.textAlign='center'; ctx.fillText('✨',bq.ball.x,bq.ball.y+4);
+  /* Flecha de dirección */
+  if(bq.dragging){
+    const dx=bq.dragCurr.x-bq.dragStart.x, dy=bq.dragCurr.y-bq.dragStart.y, len=Math.sqrt(dx*dx+dy*dy);
+    if(len>10){
+      const nx=-dx/len, ny=-dy/len, mLen=Math.min(len,110);
+      // Trayectoria simulada (arco punteado)
+      const fuerza=len*.21;
+      let px=bq.ball.x, py=bq.ball.y, pvx=nx*fuerza, pvy=ny*fuerza;
+      ctx.fillStyle='rgba(0,212,168,.22)';
+      for(let i=0;i<14;i++){
+        px+=pvx; py+=pvy; pvy+=.36;
+        if(py>H) break;
+        const r=3.5-i*.22;
+        ctx.beginPath(); ctx.arc(px,py,Math.max(.5,r),0,Math.PI*2); ctx.fill();
+      }
+      // Línea principal
+      ctx.strokeStyle='rgba(0,212,168,.55)'; ctx.lineWidth=2; ctx.setLineDash([6,4]);
+      ctx.beginPath(); ctx.moveTo(bq.ball.x,bq.ball.y); ctx.lineTo(bq.ball.x+nx*mLen,bq.ball.y+ny*mLen); ctx.stroke();
+      ctx.setLineDash([]);
+      // Punta
+      const aX=bq.ball.x+nx*mLen, aY=bq.ball.y+ny*mLen, ang=Math.atan2(-dy,-dx);
+      ctx.fillStyle='rgba(0,212,168,.7)';
+      ctx.save(); ctx.translate(aX,aY); ctx.rotate(ang);
+      ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(-12,-5); ctx.lineTo(-12,5); ctx.closePath(); ctx.fill();
+      ctx.restore();
+    }
+  }
 
-  // Idea actual y marcador
-  ctx.fillStyle='rgba(196,168,255,.6)'; ctx.font='italic 10px Nunito,sans-serif'; ctx.textAlign='center';
-  ctx.fillText(bq.ideaActual, W/2, H-6);
-  ctx.fillStyle='rgba(0,212,168,.7)'; ctx.font='bold 10px Nunito,sans-serif'; ctx.textAlign='left';
-  ctx.fillText(`${bq.encestes}/${bq.encestesNeeded} ✅`, 6, H-6);
-  ctx.fillStyle='rgba(255,255,255,.4)'; ctx.textAlign='right';
-  ctx.fillText(`${bq.tirosTotal-bq.tirosUsados} tiro${bq.tirosTotal-bq.tirosUsados!==1?'s':''}`, W-6, H-6);
+  /* Estela en vuelo */
+  if(bq.enVuelo && bq.estela.length>1){
+    bq.estela.forEach((s,i)=>{
+      const al=(i/bq.estela.length)*.32;
+      const r=s.r*(i/bq.estela.length)*.65;
+      const sG=ctx.createRadialGradient(s.x,s.y,0, s.x,s.y,r);
+      sG.addColorStop(0,`rgba(196,168,255,${al})`);
+      sG.addColorStop(1,'rgba(155,89,245,0)');
+      ctx.fillStyle=sG;
+      ctx.beginPath(); ctx.arc(s.x,s.y,Math.max(.4,r),0,Math.PI*2); ctx.fill();
+    });
+  }
+
+  /* Pelota — sombra en suelo */
+  const bx=bq.ball.x, by=bq.ball.y, br=bq.ball.r*(bq.enVuelo?1:bq.pulso);
+  if(!bq.enVuelo){
+    const shY=H-30, shDist=Math.min(1,(by-shY)/H+.4);
+    ctx.fillStyle=`rgba(0,0,0,${.22*shDist})`;
+    ctx.beginPath(); ctx.ellipse(bx,shY+3,br*shDist*1.5,br*.28*shDist,0,0,Math.PI*2); ctx.fill();
+  }
+
+  /* Glow exterior */
+  const glS=ctx.createRadialGradient(bx,by,br*.5, bx,by,br*2.4);
+  glS.addColorStop(0,'rgba(155,89,245,.22)'); glS.addColorStop(1,'rgba(155,89,245,0)');
+  ctx.fillStyle=glS; ctx.beginPath(); ctx.arc(bx,by,br*2.4,0,Math.PI*2); ctx.fill();
+
+  /* Cuerpo de la esfera — degradado 3D */
+  const bGrad=ctx.createRadialGradient(bx-br*.3,by-br*.35,br*.04, bx,by,br);
+  bGrad.addColorStop(0,  '#ede0ff');
+  bGrad.addColorStop(.18,'#c4a8ff');
+  bGrad.addColorStop(.52,'#9b59f5');
+  bGrad.addColorStop(.82,'#5c1aad');
+  bGrad.addColorStop(1,  '#2d0070');
+  ctx.shadowColor=`#9b59f5`;
+  ctx.shadowBlur=20+(bq.enVuelo?8:Math.abs(Math.sin(bq.tick*.07))*7);
+  ctx.fillStyle=bGrad; ctx.beginPath(); ctx.arc(bx,by,br,0,Math.PI*2); ctx.fill();
+  ctx.shadowBlur=0;
+
+  /* Borde luminoso */
+  ctx.strokeStyle='rgba(196,168,255,.55)'; ctx.lineWidth=1.5;
+  ctx.beginPath(); ctx.arc(bx,by,br,0,Math.PI*2); ctx.stroke();
+
+  /* Brillo especular principal */
+  const spG=ctx.createRadialGradient(bx-br*.32,by-br*.38,0, bx-br*.18,by-br*.22,br*.54);
+  spG.addColorStop(0,'rgba(255,255,255,.72)');
+  spG.addColorStop(.5,'rgba(255,255,255,.14)');
+  spG.addColorStop(1,'rgba(255,255,255,0)');
+  ctx.fillStyle=spG; ctx.beginPath(); ctx.arc(bx,by,br,0,Math.PI*2); ctx.fill();
+
+  /* Brillo secundario */
+  ctx.fillStyle='rgba(255,255,255,.2)';
+  ctx.beginPath(); ctx.ellipse(bx+br*.36,by+br*.3,br*.18,br*.11,.8,0,Math.PI*2); ctx.fill();
+
+  /* Icono en la esfera */
+  ctx.fillStyle='rgba(255,255,255,.8)';
+  ctx.font=`${Math.round(br*.72)}px sans-serif`;
+  ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText('✨',bx,by+1);
+  ctx.textBaseline='alphabetic';
+
+  /* Texto idea actual */
+  ctx.fillStyle='rgba(196,168,255,.5)'; ctx.font='italic 9px Nunito,sans-serif'; ctx.textAlign='center';
+  ctx.fillText(bq.ideaActual, W/2, H-4);
 }
 
 /* ══════════════════════════════════════════════════════════════
