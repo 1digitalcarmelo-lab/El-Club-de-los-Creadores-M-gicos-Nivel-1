@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>El Club de los Creadores Mágicos ✨</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ============================================================
+       PANTALLA 0: PORTAL DE ENTRADA (Puerta Mágica)
+       ============================================================ -->
+  <section id="pantalla-entrada" class="screen active">
+    <div class="stars-bg"></div>
+    <div class="entrada-content">
+      <div class="puerta-magica">
+        <div class="puerta-marco">
+          <div class="puerta-hoja izquierda"></div>
+          <div class="puerta-hoja derecha"></div>
+          <div class="puerta-brillo"></div>
+        </div>
+      </div>
+      <div class="entrada-texto">
+        <p class="subtitulo-entrada">✨ Te han seleccionado para ingresar a ✨</p>
+        <h1 class="titulo-entrada">El Club de los<br/><span class="titulo-magico">Creadores Mágicos</span></h1>
+        <p class="descripcion-entrada">Un lugar secreto donde los niños más creativos del mundo aprenden a crear, imaginar y brillar.</p>
+        <!-- CAMPO: Modifica el placeholder y el label aquí -->
+        <div class="campo-nombre">
+          <label for="nombre-nino">¿Cuál es tu nombre, Creador?</label>
+          <input type="text" id="nombre-nino" placeholder="Escribe tu nombre aquí..." maxlength="30" autocomplete="off" />
+        </div>
+        <button class="btn-primario btn-entrar" id="btn-entrar" onclick="iniciarClub()">
+          <span class="btn-icono">🚪</span> ¡Abrir la Puerta Mágica!
+        </button>
+      </div>
+    </div>
+    <!-- Partículas decorativas -->
+    <div class="particulas" id="particulas-entrada"></div>
+  </section>
+
+  <!-- ============================================================
+       PANTALLA 1: BIENVENIDA PERSONALIZADA
+       ============================================================ -->
+  <section id="pantalla-bienvenida" class="screen">
+    <div class="stars-bg"></div>
+    <div class="bienvenida-content">
+      <div class="avatar-club">
+        <div class="avatar-circulo">🧙‍♂️</div>
+        <div class="avatar-anillo"></div>
+      </div>
+      <h2 class="saludo-personalizado" id="saludo-texto">¡Bienvenido, Creador!</h2>
+      <div class="carta-bienvenida">
+        <!-- TEXTO: Modifica el contenido de esta carta de bienvenida -->
+        <p>Has sido elegido entre miles de niños especiales para ingresar a nuestro club secreto. Aquí vas a descubrir que <strong>tienes el poder de crear cosas increíbles</strong>.</p>
+        <p>Tengo preparadas <strong>3 Misiones Mágicas</strong>, un <strong>Desafío Especial</strong> y muchas <strong>sorpresas</strong> esperándote.</p>
+        <p>¿Estás listo para comenzar tu aventura?</p>
+        <!-- FIRMA: Modifica el nombre del guía del club -->
+        <div class="firma-guia">— El Guía de los Creadores, <em>Maestro Lumino</em></div>
+      </div>
+      <!-- Panel de XP inicial -->
+      <div class="panel-xp">
+        <div class="xp-item">
+          <span class="xp-icono">⭐</span>
+          <div>
+            <span class="xp-valor" id="xp-estrellas">0</span>
+            <span class="xp-label">Estrellas</span>
+          </div>
+        </div>
+        <div class="xp-item">
+          <span class="xp-icono">🏅</span>
+          <div>
+            <span class="xp-valor" id="xp-medallas">0</span>
+            <span class="xp-label">Medallas</span>
+          </div>
+        </div>
+        <div class="xp-item">
+          <span class="xp-icono">✨</span>
+          <div>
+            <span class="xp-valor" id="xp-puntos">0</span>
+            <span class="xp-label">XP</span>
+          </div>
+        </div>
+      </div>
+      <button class="btn-primario" onclick="irAPantalla('pantalla-mapa')">
+        <span class="btn-icono">🗺️</span> Ver el Mapa de Misiones
+      </button>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       PANTALLA 2: MAPA DE MISIONES
+       ============================================================ -->
+  <section id="pantalla-mapa" class="screen">
+    <div class="stars-bg"></div>
+    <div class="mapa-content">
+      <h2 class="pantalla-titulo">🗺️ Tu Mapa de Aventuras</h2>
+      <p class="pantalla-subtitulo">Completa cada misión para avanzar y ganar recompensas</p>
+
+      <!-- Barra de progreso global -->
+      <div class="progreso-global">
+        <div class="progreso-label">
+          <span>Progreso del Club</span>
+          <span id="progreso-porcentaje">0%</span>
+        </div>
+        <div class="barra-progreso-fondo">
+          <div class="barra-progreso-relleno" id="barra-progreso" style="width:0%"></div>
+        </div>
+        <div class="progreso-nivel">
+          Nivel: <span id="nivel-actual">🌱 Aprendiz Creador</span>
+        </div>
+      </div>
+
+      <!-- Tarjetas de misiones -->
+      <div class="misiones-grid">
+
+        <!-- MISIÓN 1 -->
+        <!-- EDITAR: Modifica título, descripción, XP, ícono y color de cada misión -->
+        <div class="mision-card" id="card-mision1" data-mision="1">
+          <div class="mision-icono-grande">🎨</div>
+          <div class="mision-estado" id="estado-mision1">🔓 Disponible</div>
+          <h3 class="mision-titulo">Misión 1</h3>
+          <h4 class="mision-subtitulo">El Arte de Imaginar</h4>
+          <p class="mision-desc">Descubrí el poder de tu imaginación y creá tu primera obra mágica.</p>
+          <div class="mision-recompensa">
+            <span>⭐ 3 estrellas</span>
+            <span>✨ 100 XP</span>
+          </div>
+          <button class="btn-mision" onclick="irAPantalla('pantalla-mision1')">¡Comenzar!</button>
+        </div>
+
+        <!-- MISIÓN 2 -->
+        <div class="mision-card bloqueada" id="card-mision2" data-mision="2">
+          <div class="mision-icono-grande">📖</div>
+          <div class="mision-estado" id="estado-mision2">🔒 Bloqueada</div>
+          <h3 class="mision-titulo">Misión 2</h3>
+          <h4 class="mision-subtitulo">El Mundo de las Historias</h4>
+          <p class="mision-desc">Convertite en el autor de tu propia historia increíble.</p>
+          <div class="mision-recompensa">
+            <span>⭐ 4 estrellas</span>
+            <span>✨ 150 XP</span>
+          </div>
+          <button class="btn-mision" onclick="intentarMisionBloqueada(2)" disabled>🔒 Bloqueada</button>
+        </div>
+
+        <!-- MISIÓN 3 -->
+        <div class="mision-card bloqueada" id="card-mision3" data-mision="3">
+          <div class="mision-icono-grande">🔬</div>
+          <div class="mision-estado" id="estado-mision3">🔒 Bloqueada</div>
+          <h3 class="mision-titulo">Misión 3</h3>
+          <h4 class="mision-subtitulo">El Laboratorio Creativo</h4>
+          <p class="mision-desc">Mezclá ideas como un científico loco y creá algo nunca visto.</p>
+          <div class="mision-recompensa">
+            <span>⭐ 5 estrellas</span>
+            <span>✨ 200 XP</span>
+          </div>
+          <button class="btn-mision" onclick="intentarMisionBloqueada(3)" disabled>🔒 Bloqueada</button>
+        </div>
+
+        <!-- DESAFÍO ESPECIAL -->
+        <div class="mision-card desafio-especial bloqueada" id="card-desafio" data-mision="desafio">
+          <div class="mision-icono-grande">⚡</div>
+          <div class="mision-estado" id="estado-desafio">🔒 Bloqueada</div>
+          <h3 class="mision-titulo">Desafío Especial</h3>
+          <h4 class="mision-subtitulo">La Prueba del Gran Creador</h4>
+          <p class="mision-desc">El desafío final que pondrá a prueba todo lo que aprendiste. ¡Solo los más valientes llegan acá!</p>
+          <div class="mision-recompensa">
+            <span>🏅 Medalla Especial</span>
+            <span>✨ 500 XP</span>
+          </div>
+          <button class="btn-mision btn-especial" onclick="intentarMisionBloqueada('desafio')" disabled>🔒 Completa las misiones</button>
+        </div>
+
+      </div>
+
+      <!-- Insignias ganadas -->
+      <div class="insignias-seccion">
+        <h3>🏆 Tus Insignias</h3>
+        <div class="insignias-grid" id="insignias-grid">
+          <div class="insignia-slot vacia" title="Completa Misión 1">?</div>
+          <div class="insignia-slot vacia" title="Completa Misión 2">?</div>
+          <div class="insignia-slot vacia" title="Completa Misión 3">?</div>
+          <div class="insignia-slot vacia" title="Completa el Desafío Especial">?</div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============================================================
+       PANTALLA 3: MISIÓN 1 - EL ARTE DE IMAGINAR
+       ============================================================ -->
+  <section id="pantalla-mision1" class="screen">
+    <div class="stars-bg"></div>
+    <div class="mision-content">
+      <div class="mision-header">
+        <button class="btn-volver" onclick="irAPantalla('pantalla-mapa')">← Volver al mapa</button>
+        <div class="mision-xp-mini">
+          <span>⭐ <span id="m1-estrellas">0</span>/3</span>
+          <span>✨ <span id="m1-xp">0</span>/100</span>
+        </div>
+      </div>
+
+      <div class="mision-intro-badge">🎨 Misión 1</div>
+      <h2 class="mision-titulo-grande">El Arte de Imaginar</h2>
+
+      <!-- ACTIVIDAD 1.1 -->
+      <div class="actividad-card" id="act-1-1">
+        <!-- EDITAR: Modifica el contenido de cada actividad -->
+        <div class="actividad-numero">Actividad 1</div>
+        <h3>🌈 ¿De qué color es tu imaginación?</h3>
+        <p>Cada Creador Mágico tiene un color secreto que representa su forma de imaginar. Elegí el tuyo:</p>
+        <div class="opciones-color" id="opciones-color">
+          <!-- EDITAR: Puedes cambiar los colores y significados -->
+          <button class="opcion-item color-rojo" onclick="elegirColor('rojo', '¡Sos un Creador Apasionado! 🔥 Tu imaginación es intensa y poderosa.')">🔴 Rojo</button>
+          <button class="opcion-item color-azul" onclick="elegirColor('azul', '¡Sos un Creador Soñador! 💙 Tu imaginación viaja a galaxias lejanas.')">🔵 Azul</button>
+          <button class="opcion-item color-verde" onclick="elegirColor('verde', '¡Sos un Creador Natural! 💚 Tu imaginación crece como una planta mágica.')">🟢 Verde</button>
+          <button class="opcion-item color-violeta" onclick="elegirColor('violeta', '¡Sos un Creador Misterioso! 💜 Tu imaginación guarda secretos increíbles.')">🟣 Violeta</button>
+          <button class="opcion-item color-dorado" onclick="elegirColor('dorado', '¡Sos un Creador Brillante! ⭐ Tu imaginación ilumina todo a tu alrededor.')">🟡 Dorado</button>
+        </div>
+        <div class="resultado-actividad oculto" id="resultado-color">
+          <div class="resultado-emoji">🎉</div>
+          <div class="resultado-texto" id="texto-color"></div>
+          <div class="xp-ganado">+20 XP</div>
+        </div>
+      </div>
+
+      <!-- ACTIVIDAD 1.2 -->
+      <div class="actividad-card bloqueada-act" id="act-1-2">
+        <div class="actividad-numero">Actividad 2</div>
+        <h3>🖼️ Dibujá con palabras</h3>
+        <p>Imaginá que tenés una caja mágica. ¿Qué guardás adentro? Escribí tu tesoro más preciado:</p>
+        <!-- EDITAR: Modifica el placeholder del campo de texto -->
+        <textarea class="campo-texto" id="tesoro-texto" placeholder="Mi tesoro es..." rows="3" maxlength="200"></textarea>
+        <button class="btn-secundario" onclick="completarTesoro()">💎 ¡Guardar mi tesoro!</button>
+        <div class="resultado-actividad oculto" id="resultado-tesoro">
+          <div class="resultado-emoji">💎</div>
+          <div class="resultado-texto">¡Qué tesoro tan especial! Solo un verdadero Creador Mágico podría imaginar algo así.</div>
+          <div class="xp-ganado">+30 XP</div>
+        </div>
+      </div>
+
+      <!-- ACTIVIDAD 1.3 - TARJETA REVELATORIA -->
+      <div class="actividad-card bloqueada-act" id="act-1-3">
+        <div class="actividad-numero">Actividad 3 — Tarjeta Mágica</div>
+        <h3>🃏 Tu Poder Creativo Secreto</h3>
+        <p>Girá la tarjeta para descubrir tu superpoder creativo:</p>
+        <div class="tarjeta-flip" id="tarjeta-poder" onclick="revelarTarjeta()">
+          <div class="tarjeta-frente">
+            <div class="tarjeta-frente-icono">✨</div>
+            <div class="tarjeta-frente-texto">Toca para revelar</div>
+          </div>
+          <div class="tarjeta-dorso">
+            <!-- EDITAR: Modifica el superpoder de esta tarjeta -->
+            <div class="tarjeta-dorso-titulo">¡Tu Superpoder es!</div>
+            <div class="tarjeta-dorso-poder">🔮 La Visión del Futuro</div>
+            <div class="tarjeta-dorso-desc">Podés imaginar cosas que todavía no existen y hacerlas realidad.</div>
+          </div>
+        </div>
+        <div class="resultado-actividad oculto" id="resultado-tarjeta">
+          <div class="xp-ganado">+50 XP ¡Tarjeta revelada!</div>
+          <button class="btn-primario" onclick="completarMision1()">🎯 ¡Misión Completada!</button>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============================================================
+       PANTALLA 4: MISIÓN 2 - EL MUNDO DE LAS HISTORIAS
+       ============================================================ -->
+  <section id="pantalla-mision2" class="screen">
+    <div class="stars-bg"></div>
+    <div class="mision-content">
+      <div class="mision-header">
+        <button class="btn-volver" onclick="irAPantalla('pantalla-mapa')">← Volver al mapa</button>
+        <div class="mision-xp-mini">
+          <span>⭐ <span id="m2-estrellas">0</span>/4</span>
+          <span>✨ <span id="m2-xp">0</span>/150</span>
+        </div>
+      </div>
+
+      <div class="mision-intro-badge">📖 Misión 2</div>
+      <h2 class="mision-titulo-grande">El Mundo de las Historias</h2>
+
+      <!-- ACTIVIDAD 2.1 -->
+      <div class="actividad-card" id="act-2-1">
+        <div class="actividad-numero">Actividad 1</div>
+        <h3>🧙 Elegí tu personaje</h3>
+        <!-- EDITAR: Modifica los personajes disponibles -->
+        <p>Todo cuento necesita un héroe. ¿Cuál será el tuyo?</p>
+        <div class="personajes-grid">
+          <button class="personaje-btn" onclick="elegirPersonaje('🦸 El Superhéroe de la Creatividad')">
+            <span class="personaje-icono">🦸</span>
+            <span>El Superhéroe</span>
+          </button>
+          <button class="personaje-btn" onclick="elegirPersonaje('🧚 La Hada de los Sueños')">
+            <span class="personaje-icono">🧚</span>
+            <span>La Hada</span>
+          </button>
+          <button class="personaje-btn" onclick="elegirPersonaje('🐉 El Dragón Inventor')">
+            <span class="personaje-icono">🐉</span>
+            <span>El Dragón</span>
+          </button>
+          <button class="personaje-btn" onclick="elegirPersonaje('🤖 El Robot Soñador')">
+            <span class="personaje-icono">🤖</span>
+            <span>El Robot</span>
+          </button>
+        </div>
+        <div class="resultado-actividad oculto" id="resultado-personaje">
+          <div class="resultado-emoji">🎭</div>
+          <div class="resultado-texto" id="texto-personaje"></div>
+          <div class="xp-ganado">+30 XP</div>
+        </div>
+      </div>
+
+      <!-- ACTIVIDAD 2.2 - QUIZ INTERACTIVO -->
+      <div class="actividad-card bloqueada-act" id="act-2-2">
+        <div class="actividad-numero">Actividad 2 — Mini Quiz</div>
+        <h3>❓ ¿Sabés qué necesita una historia?</h3>
+        <div class="quiz-container">
+          <div class="quiz-pregunta" id="quiz-pregunta">¿Cuál de estos elementos NO puede faltar en una historia?</div>
+          <div class="quiz-opciones" id="quiz-opciones">
+            <!-- EDITAR: Modifica las preguntas y opciones del quiz -->
+            <button class="quiz-opcion" onclick="responderQuiz(this, false)">🌈 Muchos colores bonitos</button>
+            <button class="quiz-opcion" onclick="responderQuiz(this, true)">🦸 Un personaje que supera un desafío</button>
+            <button class="quiz-opcion" onclick="responderQuiz(this, false)">🎵 Una canción pegadiza</button>
+            <button class="quiz-opcion" onclick="responderQuiz(this, false)">🍕 Comida deliciosa</button>
+          </div>
+          <div class="resultado-actividad oculto" id="resultado-quiz">
+            <div class="resultado-emoji" id="quiz-emoji">✅</div>
+            <div class="resultado-texto" id="quiz-feedback"></div>
+            <div class="xp-ganado" id="quiz-xp">+40 XP</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ACTIVIDAD 2.3 - CUENTO COLABORATIVO -->
+      <div class="actividad-card bloqueada-act" id="act-2-3">
+        <div class="actividad-numero">Actividad 3</div>
+        <h3>📝 El Comienzo de tu Historia</h3>
+        <!-- EDITAR: Modifica el inicio del cuento -->
+        <div class="cuento-inicio">
+          <p>📖 <em>"Había una vez, en un lugar muy lejano, un <strong id="personaje-en-cuento">joven creador</strong> que descubrió una puerta invisible en su habitación..."</em></p>
+        </div>
+        <p>¿Qué encontró del otro lado? ¡Completá la historia!</p>
+        <textarea class="campo-texto" id="historia-texto" placeholder="Del otro lado encontró..." rows="4" maxlength="300"></textarea>
+        <button class="btn-secundario" onclick="completarHistoria()">📚 ¡Guardar mi historia!</button>
+        <div class="resultado-actividad oculto" id="resultado-historia">
+          <div class="resultado-emoji">📚</div>
+          <div class="resultado-texto">¡Eso fue ALUCINANTE! Acabás de escribir el comienzo de un cuento mágico.</div>
+          <div class="xp-ganado">+80 XP</div>
+          <button class="btn-primario" onclick="completarMision2()">🎯 ¡Misión Completada!</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       PANTALLA 5: MISIÓN 3 - EL LABORATORIO CREATIVO
+       ============================================================ -->
+  <section id="pantalla-mision3" class="screen">
+    <div class="stars-bg"></div>
+    <div class="mision-content">
+      <div class="mision-header">
+        <button class="btn-volver" onclick="irAPantalla('pantalla-mapa')">← Volver al mapa</button>
+        <div class="mision-xp-mini">
+          <span>⭐ <span id="m3-estrellas">0</span>/5</span>
+          <span>✨ <span id="m3-xp">0</span>/200</span>
+        </div>
+      </div>
+
+      <div class="mision-intro-badge">🔬 Misión 3</div>
+      <h2 class="mision-titulo-grande">El Laboratorio Creativo</h2>
+
+      <!-- ACTIVIDAD 3.1 - MEZCLADOR DE IDEAS -->
+      <div class="actividad-card" id="act-3-1">
+        <div class="actividad-numero">Actividad 1 — Mezclador Mágico</div>
+        <h3>⚗️ Mezcla 2 ideas y creá algo nuevo</h3>
+        <p>Los mejores inventos nacen de combinar cosas que parecen no tener nada que ver. ¡Apretá el botón para mezclar!</p>
+        <div class="mezclador">
+          <div class="mezcla-item" id="mezcla-a">🎸 Guitarra</div>
+          <div class="mezcla-mas">+</div>
+          <div class="mezcla-item" id="mezcla-b">🦕 Dinosaurio</div>
+          <div class="mezcla-igual">=</div>
+          <div class="mezcla-resultado" id="mezcla-resultado">¿Qué será?</div>
+        </div>
+        <button class="btn-secundario" id="btn-mezclar" onclick="mezclarIdeas()">🔀 ¡Mezclar!</button>
+        <div class="resultado-actividad oculto" id="resultado-mezcla">
+          <div class="resultado-emoji">🤯</div>
+          <div class="resultado-texto" id="texto-mezcla"></div>
+          <div class="xp-ganado">+50 XP</div>
+        </div>
+      </div>
+
+      <!-- ACTIVIDAD 3.2 - EL INVENTOR -->
+      <div class="actividad-card bloqueada-act" id="act-3-2">
+        <div class="actividad-numero">Actividad 2</div>
+        <h3>💡 Inventá algo que el mundo necesita</h3>
+        <p>Si pudieras inventar CUALQUIER cosa, ¿qué inventarías para hacer el mundo más feliz?</p>
+        <textarea class="campo-texto" id="invento-texto" placeholder="Mi invento se llama..." rows="3" maxlength="250"></textarea>
+        <button class="btn-secundario" onclick="completarInvento()">⚡ ¡Registrar mi invento!</button>
+        <div class="resultado-actividad oculto" id="resultado-invento">
+          <div class="resultado-emoji">💡</div>
+          <div class="resultado-texto" id="texto-invento"></div>
+          <div class="xp-ganado">+60 XP</div>
+        </div>
+      </div>
+
+      <!-- ACTIVIDAD 3.3 - TARJETA CIENTÍFICO -->
+      <div class="actividad-card bloqueada-act" id="act-3-3">
+        <div class="actividad-numero">Actividad 3 — Tarjeta del Laboratorio</div>
+        <h3>🧪 Tu Fórmula Secreta</h3>
+        <p>Todo científico creativo tiene su fórmula. Descubrí la tuya:</p>
+        <div class="formula-container">
+          <!-- EDITAR: Modifica los ingredientes de la fórmula -->
+          <div class="formula-ingrediente">
+            <span class="ingrediente-icono">💫</span>
+            <span>1 cucharada de curiosidad</span>
+          </div>
+          <div class="formula-ingrediente">
+            <span class="ingrediente-icono">🌈</span>
+            <span>2 tazas de imaginación</span>
+          </div>
+          <div class="formula-ingrediente">
+            <span class="ingrediente-icono">❤️</span>
+            <span>Mucho amor por crear</span>
+          </div>
+          <div class="formula-ingrediente">
+            <span class="ingrediente-icono">⚡</span>
+            <span>Una pizca de valentía</span>
+          </div>
+        </div>
+        <button class="btn-secundario" onclick="activarFormula()">🧪 ¡Activar mi fórmula!</button>
+        <div class="resultado-actividad oculto" id="resultado-formula">
+          <div class="resultado-emoji">🎆</div>
+          <div class="resultado-texto">¡EXPLOOOOSIÓN CREATIVA! Tu fórmula funcionó. Sos oficialmente un Científico Creador Mágico.</div>
+          <div class="xp-ganado">+90 XP</div>
+          <button class="btn-primario" onclick="completarMision3()">🎯 ¡Misión Completada!</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       PANTALLA 6: DESAFÍO ESPECIAL
+       ============================================================ -->
+  <section id="pantalla-desafio" class="screen">
+    <div class="stars-bg"></div>
+    <div class="mision-content">
+      <div class="mision-header">
+        <button class="btn-volver" onclick="irAPantalla('pantalla-mapa')">← Volver al mapa</button>
+        <div class="mision-xp-mini">
+          <span>⚡ DESAFÍO FINAL</span>
+          <span>✨ 500 XP</span>
+        </div>
+      </div>
+
+      <div class="mision-intro-badge desafio-badge">⚡ Desafío Especial</div>
+      <h2 class="mision-titulo-grande">La Prueba del Gran Creador</h2>
+      <p class="mision-intro-texto">Solo los Creadores más valientes llegan hasta acá. Este desafío pondrá a prueba todo lo que aprendiste.</p>
+
+      <!-- DESAFÍO PRINCIPAL -->
+      <div class="actividad-card desafio-card" id="desafio-principal">
+        <div class="actividad-numero">El Gran Desafío</div>
+        <h3>🌟 Creá tu Proyecto Mágico</h3>
+        <!-- EDITAR: Modifica las instrucciones del desafío especial -->
+        <div class="desafio-instrucciones">
+          <div class="instruccion-paso">
+            <span class="paso-numero">1</span>
+            <p>Pensá en una <strong>idea completamente nueva</strong> que combine todo lo que aprendiste.</p>
+          </div>
+          <div class="instruccion-paso">
+            <span class="paso-numero">2</span>
+            <p>Ponerle un <strong>nombre creativo</strong> a tu proyecto.</p>
+          </div>
+          <div class="instruccion-paso">
+            <span class="paso-numero">3</span>
+            <p>Explicar <strong>por qué hace al mundo mejor</strong> con al menos una oración.</p>
+          </div>
+        </div>
+
+        <div class="desafio-campos">
+          <label>Nombre de tu proyecto:</label>
+          <input type="text" id="proyecto-nombre" class="campo-input" placeholder="Ej: La Máquina de Sueños..." maxlength="50" />
+          <label>¿Qué hace tu proyecto?</label>
+          <textarea class="campo-texto" id="proyecto-descripcion" placeholder="Mi proyecto..." rows="4" maxlength="400"></textarea>
+        </div>
+        <button class="btn-especial-grande" onclick="completarDesafio()">⚡ ¡Enviar mi Proyecto Mágico!</button>
+        <div class="resultado-actividad oculto" id="resultado-desafio">
+          <div class="resultado-emoji">🏆</div>
+          <div class="resultado-texto">¡¡¡INCREÍBLE!!! Acabás de demostrar que sos un verdadero Gran Creador Mágico. ¡Este es el proyecto más impresionante del club!</div>
+          <div class="xp-ganado">+500 XP 🏅 MEDALLA ESPECIAL DESBLOQUEADA</div>
+          <button class="btn-primario btn-certificado" onclick="irAPantalla('pantalla-recompensas')">🏆 ¡Ver mis Recompensas!</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       PANTALLA 7: SALA DE RECOMPENSAS
+       ============================================================ -->
+  <section id="pantalla-recompensas" class="screen">
+    <div class="stars-bg"></div>
+    <div class="recompensas-content">
+      <h2 class="pantalla-titulo">🏆 Tu Sala de Trofeos</h2>
+      <p class="pantalla-subtitulo" id="nombre-recompensas">¡Mirá todo lo que lograste, Creador!</p>
+
+      <!-- Resumen de logros -->
+      <div class="trofeos-panel">
+        <div class="trofeo-item" id="trofeo-estrellas">
+          <div class="trofeo-icono">⭐</div>
+          <div class="trofeo-numero" id="total-estrellas">0</div>
+          <div class="trofeo-label">Estrellas Ganadas</div>
+        </div>
+        <div class="trofeo-item" id="trofeo-medallas">
+          <div class="trofeo-icono">🏅</div>
+          <div class="trofeo-numero" id="total-medallas">0</div>
+          <div class="trofeo-label">Medallas</div>
+        </div>
+        <div class="trofeo-item" id="trofeo-xp">
+          <div class="trofeo-icono">✨</div>
+          <div class="trofeo-numero" id="total-xp">0</div>
+          <div class="trofeo-label">Puntos XP</div>
+        </div>
+      </div>
+
+      <!-- Logros desbloqueados -->
+      <div class="logros-seccion">
+        <h3>🏅 Logros Desbloqueados</h3>
+        <div class="logros-lista" id="logros-lista">
+          <!-- Se llenan dinámicamente desde script.js -->
+        </div>
+      </div>
+
+      <!-- Insignias ganadas -->
+      <div class="insignias-seccion">
+        <h3>🎖️ Insignias del Club</h3>
+        <div class="insignias-display" id="insignias-display">
+          <!-- Se llenan dinámicamente -->
+        </div>
+      </div>
+
+      <button class="btn-primario btn-grande" onclick="irAPantalla('pantalla-certificado')">
+        📜 ¡Ver mi Certificado Mágico!
+      </button>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       PANTALLA 8: CERTIFICADO FINAL
+       ============================================================ -->
+  <section id="pantalla-certificado" class="screen">
+    <div class="stars-bg"></div>
+    <div class="certificado-content">
+      <h2 class="pantalla-titulo">📜 Tu Certificado Oficial</h2>
+
+      <!-- CERTIFICADO VISUAL -->
+      <!-- EDITAR: Modifica el diseño del certificado cambiando las clases o el HTML aquí -->
+      <div class="certificado" id="certificado-final">
+        <div class="cert-borde-exterior">
+          <div class="cert-borde-interior">
+            <!-- Header del certificado -->
+            <div class="cert-header">
+              <div class="cert-estrellas-deco">⭐ ✨ ⭐</div>
+              <!-- EDITAR: Modifica el nombre del club en el certificado -->
+              <h1 class="cert-titulo-club">Club de los Creadores Mágicos</h1>
+              <p class="cert-subtitulo">Certificado Oficial de Membresía</p>
+            </div>
+
+            <!-- Cuerpo -->
+            <div class="cert-cuerpo">
+              <p class="cert-intro">Por medio del presente, se certifica que</p>
+              <div class="cert-nombre-grande" id="cert-nombre">NOMBRE DEL CREADOR</div>
+              <p class="cert-texto">ha completado exitosamente todas las Misiones Mágicas y demostrado ser un verdadero</p>
+              <!-- EDITAR: Modifica el título que se otorga -->
+              <div class="cert-nivel" id="cert-nivel">Gran Creador Mágico</div>
+              <div class="cert-detalles">
+                <div class="cert-detalle-item">
+                  <span class="cert-detalle-icono">⭐</span>
+                  <span>Estrellas: <strong id="cert-estrellas">0</strong></span>
+                </div>
+                <div class="cert-detalle-item">
+                  <span class="cert-detalle-icono">✨</span>
+                  <span>XP Total: <strong id="cert-xp">0</strong></span>
+                </div>
+                <div class="cert-detalle-item">
+                  <span class="cert-detalle-icono">🏅</span>
+                  <span>Medallas: <strong id="cert-medallas">0</strong></span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Footer del certificado -->
+            <div class="cert-footer">
+              <div class="cert-fecha" id="cert-fecha"></div>
+              <!-- EDITAR: Modifica la firma del director -->
+              <div class="cert-firma-area">
+                <div class="cert-firma-linea"></div>
+                <div class="cert-firma-nombre">Maestro Lumino</div>
+                <div class="cert-firma-cargo">Director del Club de Creadores Mágicos</div>
+              </div>
+              <div class="cert-sello">
+                <div class="cert-sello-circulo">🔮</div>
+                <div class="cert-sello-texto">OFICIAL</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Botones de acción -->
+      <div class="certificado-acciones">
+        <button class="btn-primario" onclick="imprimirCertificado()">
+          🖨️ Imprimir / Guardar
+        </button>
+        <button class="btn-secundario" onclick="irAPantalla('pantalla-mapa')">
+          🗺️ Volver al Mapa
+        </button>
+      </div>
+
+      <!-- Mensaje de cierre -->
+      <!-- EDITAR: Modifica el mensaje final -->
+      <div class="mensaje-final">
+        <h3>🌟 ¡Felicitaciones, Gran Creador!</h3>
+        <p>Has demostrado que la creatividad no tiene límites. Seguí creando, imaginando y brillando. ¡El mundo necesita tu magia!</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       SISTEMA DE NOTIFICACIONES Y TOASTS
+       ============================================================ -->
+  <div id="toast-container"></div>
+
+  <!-- Modal de logro desbloqueado -->
+  <div id="modal-logro" class="modal-logro oculto">
+    <div class="modal-logro-content">
+      <div class="modal-logro-icono" id="modal-logro-icono">🏅</div>
+      <div class="modal-logro-titulo">¡Logro Desbloqueado!</div>
+      <div class="modal-logro-nombre" id="modal-logro-nombre"></div>
+      <div class="modal-logro-xp" id="modal-logro-xp"></div>
+      <button class="btn-secundario" onclick="cerrarModalLogro()">¡Genial! 🎉</button>
+    </div>
+  </div>
+
+  <!-- Overlay de bloqueo -->
+  <div id="overlay-bloqueo" class="oculto">
+    <div class="mensaje-bloqueo">
+      <div class="bloqueo-icono">🔒</div>
+      <p id="texto-bloqueo">Primero completá las misiones anteriores para desbloquear esta.</p>
+      <button class="btn-secundario" onclick="cerrarOverlayBloqueo()">Entendido</button>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
