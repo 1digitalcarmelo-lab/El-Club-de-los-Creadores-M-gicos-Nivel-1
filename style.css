@@ -2355,3 +2355,496 @@ body {
     width: 80%;
   }
 }
+
+/* ============================================================
+   v4 — Sistema de perfiles, menú, historial, básquet mejorado
+   ============================================================ */
+
+/* ── Branding top ── */
+.branding-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(245,200,66,.08);
+  border: 1px solid rgba(245,200,66,.2);
+  border-radius: 14px;
+  padding: 10px 16px;
+  margin-bottom: 20px;
+  max-width: 480px;
+  width: 100%;
+}
+.brand-logo { font-size: 1.8rem; }
+.brand-nombre { display: block; font-weight: 800; font-size: .9rem; color: var(--magic-gold); }
+.brand-sub { display: block; font-size: .75rem; color: var(--lavanda-suave); }
+
+/* ── Footer ── */
+.app-footer {
+  width: 100%;
+  text-align: center;
+  color: rgba(255,255,255,.35);
+  font-size: .72rem;
+  line-height: 1.7;
+  padding: 16px 20px 10px;
+  border-top: 1px solid rgba(255,255,255,.06);
+  margin-top: auto;
+  position: relative;
+  z-index: 2;
+}
+.app-footer strong { color: rgba(255,255,255,.55); }
+.footer-redes { color: var(--aurora-teal); opacity: .7; }
+
+/* ── Pantalla selector ── */
+.selector-content {
+  max-width: 520px;
+  width: 100%;
+  padding: 40px 20px;
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+}
+.selector-titulo {
+  font-family: var(--fuente-display);
+  font-size: clamp(1.8rem,6vw,2.4rem);
+  text-align: center;
+  margin-bottom: 24px;
+  color: var(--blanco-magic);
+}
+.selector-subtitulo {
+  color: var(--lavanda-suave);
+  margin-bottom: 16px;
+  text-align: center;
+  font-size: .95rem;
+}
+.jugadores-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  margin-bottom: 8px;
+}
+.jugador-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: rgba(30,10,60,.8);
+  border: 1px solid rgba(196,168,255,.2);
+  border-radius: 18px;
+  padding: 14px 18px;
+  transition: var(--transicion);
+}
+.jugador-card:hover {
+  border-color: rgba(0,212,168,.4);
+  transform: translateY(-2px);
+}
+.jugador-avatar { font-size: 2rem; flex-shrink: 0; }
+.jugador-info { flex: 1; min-width: 0; }
+.jugador-nombre { font-family: var(--fuente-display); font-size: 1.15rem; color: var(--blanco-magic); }
+.jugador-stats  { font-size: .8rem; color: var(--aurora-teal); margin: 2px 0; }
+.jugador-fecha  { font-size: .75rem; color: rgba(255,255,255,.4); }
+.btn-jugador-entrar {
+  background: linear-gradient(135deg, var(--aurora-teal), var(--violeta-bright));
+  color: white;
+  border: none;
+  border-radius: 50px;
+  padding: 8px 18px;
+  font-family: var(--fuente-cuerpo);
+  font-size: .9rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: var(--transicion);
+}
+.btn-jugador-entrar:hover { transform: scale(1.05); }
+.selector-divisor {
+  color: rgba(255,255,255,.3);
+  font-size: .85rem;
+  margin: 16px 0;
+  text-align: center;
+  width: 100%;
+}
+.nuevo-jugador-form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: center;
+}
+.campo-nombre-grande {
+  font-size: 1.15rem !important;
+  padding: 16px 20px !important;
+  text-align: center;
+  border-radius: 18px !important;
+}
+
+/* ── Pantalla Menú ── */
+#pantalla-menu {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 40px 20px;
+  background: radial-gradient(ellipse at top, #150035 0%, var(--cosmos-profundo) 70%);
+  flex-direction: column;
+}
+.menu-content {
+  max-width: 480px;
+  width: 100%;
+  text-align: center;
+  position: relative;
+  z-index: 2;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+}
+.menu-avatar {
+  position: relative;
+  width: 90px;
+  height: 90px;
+  margin: 0 auto 16px;
+}
+.avatar-circulo.grande {
+  width: 90px;
+  height: 90px;
+  font-size: 2.6rem;
+}
+.menu-saludo {
+  font-family: var(--fuente-display);
+  font-size: clamp(1.6rem,5vw,2.2rem);
+  background: linear-gradient(135deg, var(--magic-gold), var(--rosa-magic));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 12px;
+}
+.menu-stats {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+.stat-pill {
+  background: rgba(255,255,255,.07);
+  border: 1px solid rgba(196,168,255,.2);
+  border-radius: 50px;
+  padding: 6px 16px;
+  font-size: .9rem;
+  font-weight: 700;
+  color: var(--lavanda-suave);
+}
+.menu-botones {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  max-width: 360px;
+  margin-bottom: 16px;
+}
+.menu-btn {
+  width: 100%;
+  padding: 14px 20px;
+  border-radius: 50px;
+  font-family: var(--fuente-cuerpo);
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+  transition: var(--transicion);
+  text-align: left;
+  padding-left: 24px;
+}
+.menu-btn:hover { transform: translateX(4px); }
+.menu-btn-primario  { background: linear-gradient(135deg, var(--aurora-teal), var(--violeta-bright)); color: white; box-shadow: var(--glow-teal); }
+.menu-btn-secundario{ background: rgba(0,212,168,.12); color: var(--aurora-teal); border: 1.5px solid rgba(0,212,168,.3); }
+.menu-btn-diploma   { background: rgba(245,200,66,.12); color: var(--magic-gold); border: 1.5px solid rgba(245,200,66,.3); }
+.menu-btn-logros    { background: rgba(155,89,245,.12); color: var(--lavanda-suave); border: 1.5px solid rgba(155,89,245,.2); }
+.menu-btn-historial { background: rgba(255,255,255,.06); color: rgba(255,255,255,.7); border: 1.5px solid rgba(255,255,255,.1); }
+.menu-btn-cambiar   { background: transparent; color: rgba(255,255,255,.5); border: 1px solid rgba(255,255,255,.12); }
+.menu-btn:disabled  { opacity: .45; cursor: not-allowed; transform: none !important; }
+.menu-aviso {
+  background: rgba(245,200,66,.08);
+  border: 1px solid rgba(245,200,66,.2);
+  border-radius: 12px;
+  padding: 10px 16px;
+  font-size: .85rem;
+  color: var(--magic-gold);
+  margin-bottom: 8px;
+}
+.menu-resetear { margin-top: 8px; }
+.btn-texto-peligro {
+  background: none;
+  border: none;
+  color: rgba(255,82,82,.5);
+  font-family: var(--fuente-cuerpo);
+  font-size: .8rem;
+  cursor: pointer;
+  padding: 6px;
+  transition: var(--transicion);
+}
+.btn-texto-peligro:hover { color: var(--error); }
+
+/* ── Historial ── */
+#pantalla-historial { padding: 40px 20px 60px; }
+.historial-content {
+  max-width: 640px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 2;
+}
+.historial-lista { display: flex; flex-direction: column; gap: 12px; margin: 20px 0; }
+.historial-item {
+  background: rgba(30,10,60,.8);
+  border: 1px solid rgba(196,168,255,.15);
+  border-radius: 18px;
+  padding: 16px 20px;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  grid-template-rows: auto auto;
+  gap: 4px 12px;
+  align-items: center;
+}
+.historial-num   { font-family: var(--fuente-display); font-size: 1rem; color: var(--magic-gold); grid-column:1; grid-row:1; }
+.historial-titulo{ font-size: .85rem; color: var(--aurora-teal); grid-column:1/3; grid-row:2; }
+.historial-fecha { font-size: .8rem; color: rgba(255,255,255,.4); grid-column:2; grid-row:1; }
+.historial-stats { display: flex; gap: 12px; grid-column:3; grid-row:1/3; font-size: .85rem; color: var(--lavanda-suave); flex-direction: column; align-items: flex-end; }
+.historial-vacio { color: var(--lavanda-suave); text-align: center; padding: 24px; }
+.mejor-puntaje-panel {
+  background: rgba(245,200,66,.1);
+  border: 1px solid rgba(245,200,66,.3);
+  border-radius: 16px;
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+.mejor-icono { font-size: 2rem; }
+.mejor-label { font-size: .8rem; color: var(--lavanda-suave); }
+.mejor-valor { font-family: var(--fuente-display); font-size: 1.4rem; color: var(--magic-gold); }
+
+/* ── Basketball marcador ── */
+.basquet-marcador {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(196,168,255,.15);
+  border-radius: 14px;
+  padding: 10px 16px;
+  margin-bottom: 12px;
+}
+.bq-stat {
+  font-size: .9rem;
+  color: rgba(255,255,255,.8);
+  font-weight: 600;
+}
+.bq-stat strong { color: var(--aurora-teal); }
+.bq-objetivo {
+  flex: 1;
+  font-size: .8rem;
+  color: var(--lavanda-suave);
+  font-style: italic;
+  text-align: right;
+}
+
+/* mensaje enceste (clase extra sobre .basquet-mensaje) */
+.basquet-mensaje.enceste {
+  color: var(--aurora-teal);
+  border-color: var(--aurora-teal);
+  box-shadow: 0 0 20px rgba(0,212,168,.4);
+}
+
+/* ── Cert extras ── */
+.cert-institution {
+  font-size: .85rem;
+  font-weight: 700;
+  color: var(--magic-gold);
+  letter-spacing: .5px;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+}
+.cert-branding-footer {
+  text-align: center;
+  padding-top: 16px;
+  font-size: .78rem;
+  color: rgba(255,255,255,.5);
+  line-height: 1.7;
+}
+.cert-branding-footer .cert-brand-linea {
+  height: 1px;
+  background: rgba(245,200,66,.2);
+  margin: 0 auto 12px;
+  width: 80%;
+}
+.cert-redes { color: var(--aurora-teal); opacity: .7; }
+.cert-partida-num {
+  font-size: .8rem;
+  color: var(--lavanda-suave);
+  margin-top: 8px;
+  font-style: italic;
+}
+.mensaje-final-brand {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(196,168,255,.15);
+  font-size: .85rem;
+  color: rgba(255,255,255,.6);
+  line-height: 1.8;
+}
+
+/* ── Recompensas acciones ── */
+.recompensas-acciones {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 24px;
+}
+
+/* ── Modal genérico mejorado ── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  backdrop-filter: blur(8px);
+  padding: 20px;
+}
+.modal-overlay.oculto { display: none; }
+.modal-content {
+  background: linear-gradient(145deg, #2a0a5e, #0d0125);
+  border: 1.5px solid rgba(196,168,255,.25);
+  border-radius: 28px;
+  padding: 36px 28px;
+  text-align: center;
+  max-width: 380px;
+  width: 100%;
+  box-shadow: 0 20px 60px rgba(0,0,0,.5);
+  animation: modalEntrar .4s cubic-bezier(.34,1.56,.64,1) forwards;
+}
+@keyframes modalEntrar { from{opacity:0;transform:scale(.7)} to{opacity:1;transform:scale(1)} }
+.modal-icono        { font-size: 3rem; margin-bottom: 12px; }
+.modal-titulo       { font-family: var(--fuente-display); font-size: 1.4rem; margin-bottom: 10px; color: var(--blanco-magic); }
+.modal-texto        { color: rgba(255,255,255,.8); font-size: .95rem; line-height: 1.6; margin-bottom: 20px; }
+.modal-botones      { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+.modal-logro-icono  { font-size: 3.5rem; margin-bottom: 10px; animation: iconoBrinca .6s cubic-bezier(.34,1.56,.64,1) .2s both; }
+@keyframes iconoBrinca { from{transform:scale(0)rotate(-20deg)} to{transform:scale(1)rotate(0deg)} }
+.modal-logro-titulo { font-size: .85rem; color: var(--lavanda-suave); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 8px; }
+.modal-logro-nombre { font-family: var(--fuente-display); font-size: 1.4rem; color: var(--blanco-magic); margin-bottom: 6px; }
+.modal-logro-xp     { font-family: var(--fuente-display); font-size: 1.1rem; background: linear-gradient(135deg,var(--magic-gold),var(--rosa-magic)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; margin-bottom: 18px; }
+.bloqueo-icono { font-size: 3rem; margin-bottom: 14px; animation: bloqueoShake .5s ease; }
+@keyframes bloqueoShake { 0%,100%{transform:rotate(0)} 25%{transform:rotate(-10deg)} 75%{transform:rotate(10deg)} }
+
+/* ── Mapa header row ── */
+.mapa-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.btn-mini-menu {
+  background: rgba(255,255,255,.08);
+  border: 1px solid rgba(255,255,255,.15);
+  color: var(--lavanda-suave);
+  border-radius: 50px;
+  padding: 6px 16px;
+  font-family: var(--fuente-cuerpo);
+  font-size: .85rem;
+  cursor: pointer;
+  transition: var(--transicion);
+}
+.btn-mini-menu:hover { background: rgba(255,255,255,.14); color: white; }
+
+/* ── Responsive fixes ── */
+@media (max-width: 480px) {
+  .historial-item { grid-template-columns: 1fr; grid-template-rows: repeat(4,auto); }
+  .historial-num, .historial-titulo, .historial-fecha, .historial-stats { grid-column:1; grid-row: auto; }
+  .historial-stats { flex-direction: row; align-items: flex-start; }
+  .bq-objetivo { text-align: left; flex: none; width: 100%; }
+  .basquet-marcador { flex-direction: column; gap: 6px; }
+  .menu-botones { max-width: 100%; }
+}
+
+/* ============================================================
+   v4.1 — BLOQUEO DE SCROLL ENTRE PANTALLAS
+   Hace imposible scrollear hacia pantallas protegidas en celular.
+   Solo la pantalla activa ocupa la ventana.
+   ============================================================ */
+
+/* html y body no tienen scroll propio — evita que el usuario
+   llegue scrolleando a pantallas ocultas */
+html, body {
+  height: 100%;
+  overflow: hidden; /* CLAVE: bloquea scroll global */
+}
+
+/* Cada pantalla ocupa exactamente la ventana y tiene su
+   propio scroll interno si necesita */
+.screen {
+  position: fixed;       /* fija en la ventana */
+  inset: 0;              /* top:0 left:0 right:0 bottom:0 */
+  overflow-y: auto;      /* scroll interno solo cuando está activa */
+  overflow-x: hidden;
+  z-index: 1;
+  display: none;         /* oculta por defecto */
+}
+
+/* Solo la pantalla activa es visible */
+.screen.active {
+  display: block;        /* el JS la muestra con flex o block según corresponda */
+  z-index: 2;
+}
+
+/* Las pantallas de tipo flex (padres, selector, bienvenida, menu)
+   necesitan display:flex cuando están activas — el JS ya lo maneja,
+   pero aseguramos que el position:fixed no las rompa */
+#pantalla-padres.active,
+#pantalla-selector.active,
+#pantalla-bienvenida.active,
+#pantalla-menu.active {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Pantallas jugables ocultas por defecto (doble seguridad con el JS) */
+/* El JS controla display vía inline style — aquí solo garantizamos
+   que al inicio estén ocultas si el JS no las activó todavía */
+.screen.jugable:not(.active) {
+  display: none;
+}
+
+/* Asegurar que la pantalla inicial (padres) arranque visible */
+#pantalla-padres {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Ajuste: en pantallas tipo block con contenido largo,
+   el scroll ocurre DENTRO de la pantalla activa */
+#pantalla-mapa.active,
+#pantalla-mision1.active,
+#pantalla-mision2.active,
+#pantalla-mision3.active,
+#pantalla-desafio.active,
+#pantalla-recompensas.active,
+#pantalla-certificado.active,
+#pantalla-historial.active {
+  display: block !important;
+  overflow-y: auto;
+}
