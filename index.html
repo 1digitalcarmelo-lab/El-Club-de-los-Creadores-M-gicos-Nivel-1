@@ -21,7 +21,7 @@
       <div class="brand-logo">✨</div>
       <div class="brand-info">
         <span class="brand-nombre">Escuela Creativa Filmarte Audiovisuales</span>
-        <span class="brand-sub">Guion digital: Digital Carmelo · Buenos Aires, Argentina</span>
+        <span class="brand-sub">Desarrollo digital: Digital Carmelo · Buenos Aires, Argentina</span>
       </div>
     </div>
     <div class="padres-badge">👨‍👩‍👧 Para mamás, papás y adultos</div>
@@ -47,7 +47,8 @@
     <p class="padres-nota">Podés dejar que tu hijo/a continúe solo/a desde la siguiente pantalla.</p>
   </div>
   <footer class="app-footer">
-    Creado por <strong>Escuela Creativa Filmarte Audiovisuales</strong> · Guion digital: <strong>Digital Carmelo</strong> · Buenos Aires, Argentina<br/>
+    Creado por <strong>Escuela Creativa Filmarte Audiovisuales</strong><br/>
+    Desarrollo digital: <strong>Digital Carmelo</strong> · Buenos Aires, Argentina<br/>
     <span class="footer-redes">@filmarte_audiovisuales · @digitalcarmelo</span>
   </footer>
 </section>
@@ -74,7 +75,8 @@
     </div>
   </div>
   <footer class="app-footer">
-    Creado por <strong>Escuela Creativa Filmarte Audiovisuales</strong> · Guion digital: <strong>Digital Carmelo</strong><br/>
+    Creado por <strong>Escuela Creativa Filmarte Audiovisuales</strong><br/>
+    Desarrollo digital: <strong>Digital Carmelo</strong> · Buenos Aires, Argentina<br/>
     <span class="footer-redes">@filmarte_audiovisuales · @digitalcarmelo</span>
   </footer>
 </section>
@@ -123,7 +125,8 @@
     </div>
   </div>
   <footer class="app-footer">
-    Creado por <strong>Escuela Creativa Filmarte Audiovisuales</strong> · Guion digital: <strong>Digital Carmelo</strong><br/>
+    Creado por <strong>Escuela Creativa Filmarte Audiovisuales</strong><br/>
+    Desarrollo digital: <strong>Digital Carmelo</strong> · Buenos Aires, Argentina<br/>
     <span class="footer-redes">@filmarte_audiovisuales · @digitalcarmelo</span>
   </footer>
 </section>
@@ -152,7 +155,8 @@
     <button class="btn-primario" style="margin-top:24px" onclick="irAPantalla('pantalla-menu')">Volver al menú</button>
   </div>
   <footer class="app-footer">
-    Creado por <strong>Escuela Creativa Filmarte Audiovisuales</strong> · Guion digital: <strong>Digital Carmelo</strong><br/>
+    Creado por <strong>Escuela Creativa Filmarte Audiovisuales</strong><br/>
+    Desarrollo digital: <strong>Digital Carmelo</strong> · Buenos Aires, Argentina<br/>
     <span class="footer-redes">@filmarte_audiovisuales · @digitalcarmelo</span>
   </footer>
 </section>
@@ -438,25 +442,59 @@
       </div>
     </div>
 
-    <!-- Act 3.2 Básquet -->
+    <!-- Act 3.2 Básquet — Encestá la Idea Mágica (premium) -->
     <div class="actividad-card bloqueada-act" id="act-3-2">
       <div class="actividad-numero">Actividad 2 de 5 — Encestá la Idea Mágica</div>
-      <h3>🏀 ¡Lanzá tu idea al universo!</h3>
-      <p>Arrastrá la esfera mágica hacia el portal. Tenés <strong>5 tiros</strong>. ¡Necesitás encestar <strong>3 o más</strong> para ganar!</p>
-      <div class="basquet-marcador">
-        <div class="bq-stat">🎯 Encestes: <strong id="bq-encestes">0</strong>/3</div>
-        <div class="bq-stat">🏀 Tiros: <strong id="bq-tiros">0</strong>/5</div>
-        <div class="bq-objetivo">Objetivo: encestar 3 de 5 ideas mágicas</div>
+      <h3>🔮 ¡Lanzá tu idea al Portal Mágico!</h3>
+      <p>Arrastrá la esfera de energía y soltala hacia el portal. Tenés <strong>5 lanzamientos</strong>. ¡Necesitás activar el portal <strong>3 veces</strong> para ganar!</p>
+
+      <!-- Marcador premium -->
+      <div class="bq-marcador-premium">
+        <div class="bq-stat-premium">
+          <span class="bq-stat-icono">🎯</span>
+          <span class="bq-stat-label">Encestes</span>
+          <span class="bq-stat-valor"><strong id="bq-encestes">0</strong><span class="bq-stat-de">/3</span></span>
+        </div>
+        <div class="bq-separador">✦</div>
+        <div class="bq-stat-premium">
+          <span class="bq-stat-icono">⚡</span>
+          <span class="bq-stat-label">Lanzamientos</span>
+          <span class="bq-stat-valor"><strong id="bq-tiros">0</strong><span class="bq-stat-de">/5</span></span>
+        </div>
+        <div class="bq-separador">✦</div>
+        <div class="bq-stat-premium bq-objetivo-premium">
+          <span class="bq-stat-icono">🌟</span>
+          <span class="bq-stat-label">Objetivo</span>
+          <span class="bq-stat-valor">3 encestes</span>
+        </div>
       </div>
-      <div class="basquet-arena">
-        <canvas id="basquet-canvas" width="320" height="260"></canvas>
-        <div class="basquet-mensaje" id="basquet-mensaje"></div>
+
+      <!-- Canvas del juego -->
+      <div class="basquet-arena-premium" id="basquet-arena-wrap">
+        <canvas id="basquet-canvas" width="340" height="300"></canvas>
+        <!-- Overlay de mensaje flotante -->
+        <div class="bq-overlay-msg" id="basquet-mensaje"></div>
+        <!-- Tarjeta de victoria -->
+        <div class="bq-resultado-card oculto" id="bq-resultado-card">
+          <div class="bq-res-icono" id="bq-res-icono">🏆</div>
+          <div class="bq-res-titulo" id="bq-res-titulo">¡Portal activado!</div>
+          <div class="bq-res-texto" id="bq-res-texto">Lograste encestar tus ideas mágicas. Tu creatividad abrió el camino.</div>
+          <div class="bq-res-recompensa oculto" id="bq-res-recompensa">
+            <span>⭐ +1 estrella</span>
+            <span>✨ +40 XP</span>
+          </div>
+          <button class="bq-res-btn" id="bq-res-btn" onclick="onBqBotonResultado()">Continuar misión →</button>
+        </div>
       </div>
-      <div class="basquet-instruccion" id="basquet-instruccion">☝️ Arrastrá la esfera mágica hacia el aro</div>
-      <button class="btn-secundario oculto" id="btn-reintentar-basquet" onclick="reiniciarBasquet()">🔄 Volver a intentar (5 tiros nuevos)</button>
+
+      <div class="bq-instruccion-premium" id="basquet-instruccion">
+        ✨ Arrastrá la esfera hacia el portal mágico
+      </div>
+
+      <!-- resultado-basquet oculto: solo se muestra cuando el juego termina con victoria y el jugador clickea continuar -->
       <div class="resultado-actividad oculto" id="resultado-basquet">
         <div class="resultado-emoji">🎯</div>
-        <div class="resultado-texto">¡Lograste encestar tus ideas mágicas! Ahora viven en el universo creativo para siempre.</div>
+        <div class="resultado-texto">¡Lograste activar el Portal Mágico! Tus ideas ahora viven en el universo creativo para siempre.</div>
         <div class="xp-ganado">+1 ⭐  +40 XP</div>
       </div>
     </div>
@@ -644,7 +682,7 @@
           <div class="cert-branding-footer">
             <div class="cert-brand-linea"></div>
             <p>Certificado otorgado por <strong>Escuela Creativa Filmarte Audiovisuales</strong></p>
-            <p>Guion y desarrollo digital: <strong>Digital Carmelo</strong> · Buenos Aires, Argentina</p>
+            <p>Desarrollo digital: <strong>Digital Carmelo</strong> · Buenos Aires, Argentina</p>
             <p class="cert-redes">@filmarte_audiovisuales · @digitalcarmelo</p>
           </div>
         </div>
