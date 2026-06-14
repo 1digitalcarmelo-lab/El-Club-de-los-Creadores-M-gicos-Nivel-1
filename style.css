@@ -1890,3 +1890,468 @@ body {
     width: 100%; height: auto;
   }
 }
+
+/* ============================================================
+   ADICIONES v2 — Pantalla padres, Misión 3 nuevas actividades
+   ============================================================ */
+
+/* ==================== PANTALLA PADRES ==================== */
+#pantalla-padres {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 40px 20px;
+  background: radial-gradient(ellipse at top, #150035 0%, var(--cosmos-profundo) 70%);
+}
+
+.padres-content {
+  max-width: 560px;
+  width: 100%;
+  text-align: center;
+  position: relative;
+  z-index: 2;
+}
+
+.padres-badge {
+  display: inline-block;
+  background: rgba(245,200,66,0.15);
+  border: 1px solid rgba(245,200,66,0.4);
+  color: var(--magic-gold);
+  border-radius: 50px;
+  padding: 8px 20px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  margin-bottom: 18px;
+  letter-spacing: 0.5px;
+}
+
+.padres-titulo {
+  font-family: var(--fuente-display);
+  font-size: clamp(1.8rem, 6vw, 3rem);
+  line-height: 1.1;
+  margin-bottom: 28px;
+  color: var(--blanco-magic);
+}
+
+.padres-card {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(196,168,255,0.2);
+  border-radius: 24px;
+  padding: 28px;
+  margin-bottom: 28px;
+  text-align: left;
+}
+
+.padres-card p {
+  color: rgba(255,255,255,0.85);
+  line-height: 1.75;
+  margin-bottom: 14px;
+}
+
+.padres-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 18px 0;
+}
+
+.padres-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: rgba(255,255,255,0.9);
+  font-size: 0.95rem;
+}
+
+.padres-seguridad {
+  background: rgba(0,212,168,0.08);
+  border: 1px solid rgba(0,212,168,0.25);
+  border-radius: 14px;
+  padding: 14px 16px;
+  font-size: 0.9rem;
+  color: rgba(255,255,255,0.85);
+  line-height: 1.6;
+  margin-top: 16px;
+}
+
+.padres-nota {
+  color: var(--lavanda-suave);
+  font-size: 0.85rem;
+  margin-top: 14px;
+}
+
+/* ==================== CONTADOR M3 ==================== */
+.m3-progreso-barra {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(196,168,255,0.2);
+  border-radius: 16px;
+  padding: 16px 20px;
+  margin-bottom: 24px;
+  text-align: center;
+}
+
+.m3-estrellas-fila {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.m3-estrella {
+  font-size: 2rem;
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  opacity: 0.3;
+}
+
+.m3-estrella.activa {
+  opacity: 1;
+  animation: estrellaEncender 0.5s ease forwards;
+}
+
+@keyframes estrellaEncender {
+  0%   { transform: scale(0.5) rotate(-20deg); }
+  60%  { transform: scale(1.3) rotate(5deg); }
+  100% { transform: scale(1) rotate(0deg); }
+}
+
+.m3-progreso-texto {
+  font-size: 0.85rem;
+  color: var(--lavanda-suave);
+}
+
+/* ==================== RULETA DE PODERES ==================== */
+.ruleta-container {
+  margin: 16px 0;
+}
+
+.ruleta-display {
+  background: linear-gradient(135deg, #1e0a3c, #2d0a5e);
+  border: 2px solid rgba(196,168,255,0.3);
+  border-radius: 20px;
+  padding: 28px 20px;
+  text-align: center;
+  margin-bottom: 14px;
+  min-height: 100px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: all 0.3s ease;
+}
+
+.ruleta-icono {
+  font-size: 2.5rem;
+  transition: transform 0.15s ease;
+}
+
+.ruleta-icono.girando {
+  animation: ruletaGirar 0.12s linear infinite;
+}
+
+@keyframes ruletaGirar {
+  0%   { transform: scale(1) rotate(0deg); }
+  25%  { transform: scale(1.1) rotate(5deg); }
+  50%  { transform: scale(0.9) rotate(-5deg); }
+  75%  { transform: scale(1.1) rotate(5deg); }
+  100% { transform: scale(1) rotate(0deg); }
+}
+
+.ruleta-texto {
+  font-size: 1rem;
+  color: var(--lavanda-suave);
+  font-style: italic;
+}
+
+.ruleta-texto.revelado {
+  font-family: var(--fuente-display);
+  font-size: 1.2rem;
+  color: var(--magic-gold);
+  font-style: normal;
+}
+
+.ruleta-opciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.ruleta-opciones span {
+  background: rgba(155,89,245,0.12);
+  border: 1px solid rgba(155,89,245,0.25);
+  color: var(--lavanda-suave);
+  border-radius: 50px;
+  padding: 4px 12px;
+  font-size: 0.8rem;
+}
+
+/* ==================== FOTO MÁGICA ==================== */
+.foto-seguridad {
+  background: rgba(0,212,168,0.08);
+  border: 1px solid rgba(0,212,168,0.2);
+  border-radius: 12px;
+  padding: 12px 16px;
+  font-size: 0.85rem;
+  color: rgba(255,255,255,0.8);
+  margin-bottom: 14px;
+  line-height: 1.5;
+}
+
+.foto-upload-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  border: 2px dashed rgba(196,168,255,0.3);
+  border-radius: 16px;
+  padding: 28px 20px;
+  text-align: center;
+  transition: var(--transicion);
+  cursor: pointer;
+}
+
+.foto-upload-area:hover {
+  border-color: rgba(0,212,168,0.5);
+  background: rgba(0,212,168,0.04);
+}
+
+.btn-foto-upload {
+  background: linear-gradient(135deg, var(--violeta-bright), var(--aurora-teal));
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 50px;
+  font-family: var(--fuente-cuerpo);
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: var(--transicion);
+}
+
+.btn-foto-upload:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--glow-teal);
+}
+
+.foto-hint {
+  color: var(--lavanda-suave);
+  font-size: 0.85rem;
+}
+
+.foto-preview-area {
+  margin-top: 16px;
+}
+
+.foto-marco {
+  position: relative;
+  display: inline-block;
+  border-radius: 16px;
+  overflow: hidden;
+  margin-bottom: 16px;
+  border: 4px solid var(--magic-gold);
+  box-shadow: var(--glow-gold);
+  max-width: 260px;
+  width: 100%;
+}
+
+.foto-marco img {
+  width: 100%;
+  display: block;
+  border-radius: 12px;
+}
+
+.foto-titulo-magico {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.85), transparent);
+  color: var(--magic-gold);
+  font-family: var(--fuente-display);
+  font-size: 1rem;
+  padding: 12px 8px 8px;
+  text-align: center;
+}
+
+/* Marcos de poder (filters CSS) */
+.marco-arcoiris img { filter: saturate(2.5) hue-rotate(15deg); }
+.marco-animal img   { filter: sepia(0.5) saturate(1.5) contrast(1.1); }
+.marco-aventura img { filter: contrast(1.3) brightness(0.9) saturate(0.8); }
+.marco-musical img  { filter: hue-rotate(200deg) saturate(1.5); }
+.marco-tesoro img   { filter: sepia(0.8) saturate(2) brightness(1.1); }
+
+/* Color del borde según poder */
+.marco-arcoiris { border-color: #ff6bb5; box-shadow: 0 0 20px rgba(255,107,181,0.5); }
+.marco-animal   { border-color: #f5a623; box-shadow: 0 0 20px rgba(245,166,35,0.5); }
+.marco-aventura { border-color: #00d4a8; box-shadow: 0 0 20px rgba(0,212,168,0.5); }
+.marco-musical  { border-color: #c4a8ff; box-shadow: 0 0 20px rgba(196,168,255,0.5); }
+.marco-tesoro   { border-color: #f5c842; box-shadow: 0 0 20px rgba(245,200,66,0.5); }
+
+.foto-elegir-poder {
+  color: var(--lavanda-suave);
+  font-size: 0.9rem;
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+.poderes-foto {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+}
+
+.poder-btn {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(196,168,255,0.25);
+  color: white;
+  border-radius: 50px;
+  padding: 8px 16px;
+  font-family: var(--fuente-cuerpo);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transicion);
+}
+
+.poder-btn:hover, .poder-btn.activo {
+  border-color: var(--magic-gold);
+  background: rgba(245,200,66,0.12);
+  box-shadow: var(--glow-gold);
+}
+
+/* ==================== RASPADITA ==================== */
+.raspadita-container {
+  position: relative;
+  margin: 16px auto;
+  width: 320px;
+  max-width: 100%;
+  height: 120px;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+}
+
+.raspadita-texto-oculto {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, var(--magic-gold), var(--rosa-magic));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 16px;
+  font-family: var(--fuente-display);
+  font-size: 1.05rem;
+  color: var(--cosmos-profundo);
+  line-height: 1.4;
+  z-index: 0;
+}
+
+#raspadita-canvas {
+  position: relative;
+  z-index: 1;
+  cursor: crosshair;
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 16px;
+}
+
+.raspadita-hint {
+  text-align: center;
+  color: var(--lavanda-suave);
+  font-size: 0.85rem;
+  margin-top: 8px;
+}
+
+/* ==================== FIXES DE DISPLAY PARA PANTALLA PADRES ==================== */
+/* La pantalla de padres arranca como active, el resto oculto */
+#pantalla-padres.screen { display: flex; }
+
+/* ============================================================
+   ADICIONES v3 — Mini juego Básquet "Encestá la Idea Mágica"
+   ============================================================ */
+
+/* Contenedor del juego */
+.basquet-arena {
+  position: relative;
+  margin: 16px auto;
+  width: 320px;
+  max-width: 100%;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 6px 30px rgba(0,0,0,0.5), 0 0 0 2px rgba(155,89,245,0.3);
+}
+
+/* Canvas — ocupa todo el ancho del contenedor */
+#basquet-canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  cursor: grab;
+  touch-action: none; /* evita scroll accidental en mobile */
+}
+
+#basquet-canvas:active { cursor: grabbing; }
+
+/* Mensaje flotante sobre el canvas */
+.basquet-mensaje {
+  display: none;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(10, 1, 24, 0.92);
+  backdrop-filter: blur(8px);
+  border-radius: 16px;
+  padding: 14px 22px;
+  font-family: var(--fuente-display);
+  font-size: 1.2rem;
+  text-align: center;
+  pointer-events: none;
+  animation: mensajeAparecer 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  z-index: 10;
+  white-space: nowrap;
+}
+
+.basquet-mensaje.exito {
+  color: var(--magic-gold);
+  border: 2px solid var(--magic-gold);
+  box-shadow: 0 0 30px rgba(245,200,66,0.5);
+}
+
+.basquet-mensaje.fallo {
+  color: var(--lavanda-suave);
+  border: 2px solid rgba(196,168,255,0.4);
+}
+
+@keyframes mensajeAparecer {
+  from { opacity: 0; transform: translate(-50%, -50%) scale(0.7); }
+  to   { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+
+/* Instrucción debajo del juego */
+.basquet-instruccion {
+  text-align: center;
+  color: var(--lavanda-suave);
+  font-size: 0.85rem;
+  margin-top: 8px;
+  transition: opacity 0.5s ease;
+}
+
+/* Responsive — en mobile el canvas se estrecha */
+@media (max-width: 380px) {
+  .basquet-arena {
+    width: 100%;
+    border-radius: 14px;
+  }
+  .basquet-mensaje {
+    font-size: 1rem;
+    padding: 10px 16px;
+    white-space: normal;
+    width: 80%;
+  }
+}
