@@ -2275,391 +2275,204 @@ body {
    ADICIONES v3 — Mini juego Básquet "Encestá la Idea Mágica"
    ============================================================ */
 
-/* Contenedor del juego */
-.basquet-arena {
+/* ============================================================
+   BÁSQUET PREMIUM — "Encestá la Idea Mágica"
+   ============================================================ */
+
+/* Contenedor del arena */
+.basquet-arena-premium {
   position: relative;
-  margin: 16px auto;
-  width: 320px;
-  max-width: 100%;
+  margin: 14px auto 8px;
+  width: 100%;
+  max-width: 340px;
   border-radius: 20px;
   overflow: hidden;
-  box-shadow: 0 6px 30px rgba(0,0,0,0.5), 0 0 0 2px rgba(155,89,245,0.3);
+  box-shadow:
+    0 0 0 2px rgba(155,89,245,.4),
+    0 0 20px rgba(155,89,245,.2),
+    0 8px 32px rgba(0,0,0,.6);
 }
 
-/* Canvas — ocupa todo el ancho del contenedor */
 #basquet-canvas {
   display: block;
   width: 100%;
   height: auto;
   cursor: grab;
-  touch-action: none; /* evita scroll accidental en mobile */
+  touch-action: none;
+  border-radius: 20px;
 }
 
 #basquet-canvas:active { cursor: grabbing; }
 
-/* Mensaje flotante sobre el canvas */
-.basquet-mensaje {
+/* Marcador premium */
+.bq-marcador-premium {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  background: rgba(10,1,30,.7);
+  border: 1px solid rgba(196,168,255,.2);
+  border-radius: 16px;
+  padding: 10px 16px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.bq-stat-premium {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  flex: 1;
+  min-width: 60px;
+}
+
+.bq-stat-icono  { font-size: 1.2rem; line-height: 1; }
+.bq-stat-label  { font-size: .68rem; color: rgba(196,168,255,.6); text-transform: uppercase; letter-spacing: .5px; }
+.bq-stat-valor  { font-family: 'Fredoka One', cursive; font-size: 1.2rem; color: var(--aurora-teal); line-height: 1; }
+.bq-stat-valor strong { color: var(--magic-gold); }
+.bq-stat-de     { font-size: .7rem; color: rgba(255,255,255,.3); margin-left: 1px; }
+.bq-objetivo-premium .bq-stat-valor { font-size: .9rem; color: var(--lavanda-suave); }
+
+.bq-separador {
+  color: rgba(196,168,255,.2);
+  font-size: .9rem;
+  flex-shrink: 0;
+}
+
+/* Overlay de mensaje flotante */
+.bq-overlay-msg {
   display: none;
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background: rgba(10, 1, 24, 0.92);
+  background: rgba(5,0,16,.92);
   backdrop-filter: blur(8px);
-  border-radius: 16px;
-  padding: 14px 22px;
-  font-family: var(--fuente-display);
-  font-size: 1.2rem;
-  text-align: center;
-  pointer-events: none;
-  animation: mensajeAparecer 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-  z-index: 10;
-  white-space: nowrap;
-}
-
-.basquet-mensaje.exito {
-  color: var(--magic-gold);
-  border: 2px solid var(--magic-gold);
-  box-shadow: 0 0 30px rgba(245,200,66,0.5);
-}
-
-.basquet-mensaje.fallo {
-  color: var(--lavanda-suave);
-  border: 2px solid rgba(196,168,255,0.4);
-}
-
-@keyframes mensajeAparecer {
-  from { opacity: 0; transform: translate(-50%, -50%) scale(0.7); }
-  to   { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-}
-
-/* Instrucción debajo del juego */
-.basquet-instruccion {
-  text-align: center;
-  color: var(--lavanda-suave);
-  font-size: 0.85rem;
-  margin-top: 8px;
-  transition: opacity 0.5s ease;
-}
-
-/* Responsive — en mobile el canvas se estrecha */
-@media (max-width: 380px) {
-  .basquet-arena {
-    width: 100%;
-    border-radius: 14px;
-  }
-  .basquet-mensaje {
-    font-size: 1rem;
-    padding: 10px 16px;
-    white-space: normal;
-    width: 80%;
-  }
-}
-
-/* ============================================================
-   v4 — Sistema de perfiles, menú, historial, básquet mejorado
-   ============================================================ */
-
-/* ── Branding top ── */
-.branding-top {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  background: rgba(245,200,66,.08);
-  border: 1px solid rgba(245,200,66,.2);
   border-radius: 14px;
-  padding: 10px 16px;
-  margin-bottom: 20px;
-  max-width: 480px;
-  width: 100%;
-}
-.brand-logo { font-size: 1.8rem; }
-.brand-nombre { display: block; font-weight: 800; font-size: .9rem; color: var(--magic-gold); }
-.brand-sub { display: block; font-size: .75rem; color: var(--lavanda-suave); }
-
-/* ── Footer ── */
-.app-footer {
-  width: 100%;
-  text-align: center;
-  color: rgba(255,255,255,.35);
-  font-size: .72rem;
-  line-height: 1.7;
-  padding: 16px 20px 10px;
-  border-top: 1px solid rgba(255,255,255,.06);
-  margin-top: auto;
-  position: relative;
-  z-index: 2;
-}
-.app-footer strong { color: rgba(255,255,255,.55); }
-.footer-redes { color: var(--aurora-teal); opacity: .7; }
-
-/* ── Pantalla selector ── */
-.selector-content {
-  max-width: 520px;
-  width: 100%;
-  padding: 40px 20px;
-  position: relative;
-  z-index: 2;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0;
-}
-.selector-titulo {
-  font-family: var(--fuente-display);
-  font-size: clamp(1.8rem,6vw,2.4rem);
-  text-align: center;
-  margin-bottom: 24px;
-  color: var(--blanco-magic);
-}
-.selector-subtitulo {
-  color: var(--lavanda-suave);
-  margin-bottom: 16px;
-  text-align: center;
-  font-size: .95rem;
-}
-.jugadores-lista {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  width: 100%;
-  margin-bottom: 8px;
-}
-.jugador-card {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  background: rgba(30,10,60,.8);
-  border: 1px solid rgba(196,168,255,.2);
-  border-radius: 18px;
-  padding: 14px 18px;
-  transition: var(--transicion);
-}
-.jugador-card:hover {
-  border-color: rgba(0,212,168,.4);
-  transform: translateY(-2px);
-}
-.jugador-avatar { font-size: 2rem; flex-shrink: 0; }
-.jugador-info { flex: 1; min-width: 0; }
-.jugador-nombre { font-family: var(--fuente-display); font-size: 1.15rem; color: var(--blanco-magic); }
-.jugador-stats  { font-size: .8rem; color: var(--aurora-teal); margin: 2px 0; }
-.jugador-fecha  { font-size: .75rem; color: rgba(255,255,255,.4); }
-.btn-jugador-entrar {
-  background: linear-gradient(135deg, var(--aurora-teal), var(--violeta-bright));
-  color: white;
-  border: none;
-  border-radius: 50px;
-  padding: 8px 18px;
-  font-family: var(--fuente-cuerpo);
-  font-size: .9rem;
-  font-weight: 700;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: var(--transicion);
-}
-.btn-jugador-entrar:hover { transform: scale(1.05); }
-.selector-divisor {
-  color: rgba(255,255,255,.3);
-  font-size: .85rem;
-  margin: 16px 0;
-  text-align: center;
-  width: 100%;
-}
-.nuevo-jugador-form {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  align-items: center;
-}
-.campo-nombre-grande {
-  font-size: 1.15rem !important;
-  padding: 16px 20px !important;
-  text-align: center;
-  border-radius: 18px !important;
-}
-
-/* ── Pantalla Menú ── */
-#pantalla-menu {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 100vh;
-  padding: 40px 20px;
-  background: radial-gradient(ellipse at top, #150035 0%, var(--cosmos-profundo) 70%);
-  flex-direction: column;
-}
-.menu-content {
-  max-width: 480px;
-  width: 100%;
-  text-align: center;
-  position: relative;
-  z-index: 2;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 0;
-}
-.menu-avatar {
-  position: relative;
-  width: 90px;
-  height: 90px;
-  margin: 0 auto 16px;
-}
-.avatar-circulo.grande {
-  width: 90px;
-  height: 90px;
-  font-size: 2.6rem;
-}
-.menu-saludo {
-  font-family: var(--fuente-display);
-  font-size: clamp(1.6rem,5vw,2.2rem);
-  background: linear-gradient(135deg, var(--magic-gold), var(--rosa-magic));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  margin-bottom: 12px;
-}
-.menu-stats {
-  display: flex;
-  gap: 10px;
-  justify-content: center;
-  flex-wrap: wrap;
-  margin-bottom: 24px;
-}
-.stat-pill {
-  background: rgba(255,255,255,.07);
-  border: 1px solid rgba(196,168,255,.2);
-  border-radius: 50px;
-  padding: 6px 16px;
-  font-size: .9rem;
-  font-weight: 700;
-  color: var(--lavanda-suave);
-}
-.menu-botones {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  width: 100%;
-  max-width: 360px;
-  margin-bottom: 16px;
-}
-.menu-btn {
-  width: 100%;
-  padding: 14px 20px;
-  border-radius: 50px;
-  font-family: var(--fuente-cuerpo);
+  padding: 12px 20px;
+  font-family: 'Nunito', sans-serif;
   font-size: 1rem;
   font-weight: 700;
-  cursor: pointer;
-  border: none;
-  transition: var(--transicion);
-  text-align: left;
-  padding-left: 24px;
+  text-align: center;
+  white-space: normal;
+  max-width: 85%;
+  pointer-events: none;
+  z-index: 10;
+  animation: bqMsgEntrar .3s cubic-bezier(.34,1.56,.64,1) forwards;
 }
-.menu-btn:hover { transform: translateX(4px); }
-.menu-btn-primario  { background: linear-gradient(135deg, var(--aurora-teal), var(--violeta-bright)); color: white; box-shadow: var(--glow-teal); }
-.menu-btn-secundario{ background: rgba(0,212,168,.12); color: var(--aurora-teal); border: 1.5px solid rgba(0,212,168,.3); }
-.menu-btn-diploma   { background: rgba(245,200,66,.12); color: var(--magic-gold); border: 1.5px solid rgba(245,200,66,.3); }
-.menu-btn-logros    { background: rgba(155,89,245,.12); color: var(--lavanda-suave); border: 1.5px solid rgba(155,89,245,.2); }
-.menu-btn-historial { background: rgba(255,255,255,.06); color: rgba(255,255,255,.7); border: 1.5px solid rgba(255,255,255,.1); }
-.menu-btn-cambiar   { background: transparent; color: rgba(255,255,255,.5); border: 1px solid rgba(255,255,255,.12); }
-.menu-btn:disabled  { opacity: .45; cursor: not-allowed; transform: none !important; }
-.menu-aviso {
-  background: rgba(245,200,66,.08);
-  border: 1px solid rgba(245,200,66,.2);
-  border-radius: 12px;
-  padding: 10px 16px;
-  font-size: .85rem;
-  color: var(--magic-gold);
-  margin-bottom: 8px;
-}
-.menu-resetear { margin-top: 8px; }
-.btn-texto-peligro {
-  background: none;
-  border: none;
-  color: rgba(255,82,82,.5);
-  font-family: var(--fuente-cuerpo);
-  font-size: .8rem;
-  cursor: pointer;
-  padding: 6px;
-  transition: var(--transicion);
-}
-.btn-texto-peligro:hover { color: var(--error); }
 
-/* ── Historial ── */
-#pantalla-historial { padding: 40px 20px 60px; }
-.historial-content {
-  max-width: 640px;
-  margin: 0 auto;
-  position: relative;
-  z-index: 2;
-}
-.historial-lista { display: flex; flex-direction: column; gap: 12px; margin: 20px 0; }
-.historial-item {
-  background: rgba(30,10,60,.8);
-  border: 1px solid rgba(196,168,255,.15);
-  border-radius: 18px;
-  padding: 16px 20px;
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  grid-template-rows: auto auto;
-  gap: 4px 12px;
-  align-items: center;
-}
-.historial-num   { font-family: var(--fuente-display); font-size: 1rem; color: var(--magic-gold); grid-column:1; grid-row:1; }
-.historial-titulo{ font-size: .85rem; color: var(--aurora-teal); grid-column:1/3; grid-row:2; }
-.historial-fecha { font-size: .8rem; color: rgba(255,255,255,.4); grid-column:2; grid-row:1; }
-.historial-stats { display: flex; gap: 12px; grid-column:3; grid-row:1/3; font-size: .85rem; color: var(--lavanda-suave); flex-direction: column; align-items: flex-end; }
-.historial-vacio { color: var(--lavanda-suave); text-align: center; padding: 24px; }
-.mejor-puntaje-panel {
-  background: rgba(245,200,66,.1);
-  border: 1px solid rgba(245,200,66,.3);
-  border-radius: 16px;
-  padding: 14px 20px;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  margin-bottom: 16px;
-}
-.mejor-icono { font-size: 2rem; }
-.mejor-label { font-size: .8rem; color: var(--lavanda-suave); }
-.mejor-valor { font-family: var(--fuente-display); font-size: 1.4rem; color: var(--magic-gold); }
+.bq-msg-exito   { color: var(--magic-gold);    border: 1.5px solid rgba(245,200,66,.6);  box-shadow: 0 0 24px rgba(245,200,66,.35); }
+.bq-msg-enceste { color: var(--aurora-teal);   border: 1.5px solid rgba(0,212,168,.5);   box-shadow: 0 0 20px rgba(0,212,168,.25); }
+.bq-msg-fallo   { color: var(--lavanda-suave); border: 1.5px solid rgba(196,168,255,.3); box-shadow: 0 0 14px rgba(0,0,0,.5); }
 
-/* ── Basketball marcador ── */
-.basquet-marcador {
+@keyframes bqMsgEntrar {
+  from { opacity:0; transform:translate(-50%,-50%) scale(.8); }
+  to   { opacity:1; transform:translate(-50%,-50%) scale(1); }
+}
+
+/* Tarjeta de resultado (victoria / derrota) */
+.bq-resultado-card {
+  position: absolute;
+  inset: 0;
+  border-radius: 20px;
   display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   gap: 10px;
-  flex-wrap: wrap;
-  align-items: center;
-  background: rgba(255,255,255,.04);
-  border: 1px solid rgba(196,168,255,.15);
-  border-radius: 14px;
-  padding: 10px 16px;
-  margin-bottom: 12px;
+  padding: 24px 20px;
+  text-align: center;
+  z-index: 20;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  background: rgba(5,0,20,.88);
 }
-.bq-stat {
+
+.bq-resultado-card.oculto { display: none !important; }
+
+.bq-card-entrando {
+  animation: bqCardEntrar .5s cubic-bezier(.34,1.3,.64,1) forwards;
+}
+@keyframes bqCardEntrar {
+  from { opacity:0; transform:scale(.88); }
+  to   { opacity:1; transform:scale(1); }
+}
+
+.bq-res-icono {
+  font-size: 3.2rem;
+  animation: bqIconoBrinca .6s cubic-bezier(.34,1.56,.64,1) .1s both;
+}
+@keyframes bqIconoBrinca {
+  from { transform:scale(0) rotate(-15deg); }
+  to   { transform:scale(1) rotate(0deg); }
+}
+
+.bq-res-titulo {
+  font-family: 'Fredoka One', cursive;
+  font-size: 1.6rem;
+  color: var(--magic-gold);
+  text-shadow: 0 0 20px rgba(245,200,66,.5);
+  line-height: 1.1;
+}
+
+.bq-res-texto {
   font-size: .9rem;
   color: rgba(255,255,255,.8);
-  font-weight: 600;
-}
-.bq-stat strong { color: var(--aurora-teal); }
-.bq-objetivo {
-  flex: 1;
-  font-size: .8rem;
-  color: var(--lavanda-suave);
-  font-style: italic;
-  text-align: right;
+  line-height: 1.6;
+  max-width: 240px;
 }
 
-/* mensaje enceste (clase extra sobre .basquet-mensaje) */
-.basquet-mensaje.enceste {
-  color: var(--aurora-teal);
-  border-color: var(--aurora-teal);
+.bq-res-recompensa {
+  display: flex;
+  gap: 14px;
+  background: rgba(245,200,66,.1);
+  border: 1px solid rgba(245,200,66,.3);
+  border-radius: 50px;
+  padding: 6px 18px;
+  font-family: 'Fredoka One', cursive;
+  font-size: 1rem;
+  color: var(--magic-gold);
+}
+
+.bq-res-btn {
+  border: none;
+  border-radius: 50px;
+  padding: 12px 28px;
+  font-family: 'Nunito', sans-serif;
+  font-size: 1rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: transform .2s ease, box-shadow .2s ease;
+  margin-top: 4px;
+}
+
+.bq-res-btn-victoria {
+  background: linear-gradient(135deg, var(--aurora-teal), var(--violeta-bright));
+  color: white;
   box-shadow: 0 0 20px rgba(0,212,168,.4);
 }
+
+.bq-res-btn-reintento {
+  background: rgba(196,168,255,.15);
+  color: var(--lavanda-suave);
+  border: 1.5px solid rgba(196,168,255,.3);
+}
+
+.bq-res-btn:hover  { transform: translateY(-2px) scale(1.04); }
+.bq-res-btn:active { transform: scale(.97); }
+
+/* Instrucción debajo del canvas */
+.bq-instruccion-premium {
+  text-align: center;
+  font-size: .85rem;
+  color: rgba(196,168,255,.6);
+  margin: 6px 0 10px;
+  font-style: italic;
+  transition: opacity .4s ease;
+}
+
+
 
 /* ── Cert extras ── */
 .cert-institution {
@@ -2772,8 +2585,7 @@ body {
   .historial-item { grid-template-columns: 1fr; grid-template-rows: repeat(4,auto); }
   .historial-num, .historial-titulo, .historial-fecha, .historial-stats { grid-column:1; grid-row: auto; }
   .historial-stats { flex-direction: row; align-items: flex-start; }
-  .bq-objetivo { text-align: left; flex: none; width: 100%; }
-  .basquet-marcador { flex-direction: column; gap: 6px; }
+  /* Basketball premium — mobile handled above */
   .menu-botones { max-width: 100%; }
 }
 
@@ -2847,4 +2659,576 @@ html, body {
 #pantalla-historial.active {
   display: block !important;
   overflow-y: auto;
+}
+
+/* ============================================================
+   v4.2 — RESPONSIVE MÓVIL COMPLETO
+   Corrige textos cortados, footers apretados y botones
+   que se salen de pantalla en celulares pequeños.
+   ============================================================ */
+
+/* ── Base global: box-sizing y overflow-wrap seguros ── */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+/* Evitar que cualquier elemento rompa el ancho del viewport */
+img, canvas, video, iframe {
+  max-width: 100%;
+  height: auto;
+}
+
+/* ── Footer: versión móvil completa ── */
+.app-footer {
+  /* sobrescribir white-space si existía */
+  white-space: normal;
+  overflow-wrap: break-word;
+  word-break: normal;
+  hyphens: auto;
+}
+
+.footer-redes {
+  display: block;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+/* ── branding-top en padres: no se salga en móvil ── */
+.branding-top {
+  overflow-wrap: break-word;
+  word-break: normal;
+  box-sizing: border-box;
+}
+
+.brand-sub {
+  overflow-wrap: break-word;
+  word-break: normal;
+  white-space: normal;   /* permite wrap */
+}
+
+/* ── Contenidos de pantallas: padding lateral mínimo garantizado ── */
+.padres-content,
+.selector-content,
+.menu-content,
+.historial-content,
+.bienvenida-content,
+.mapa-content,
+.mision-content,
+.recompensas-content,
+.certificado-content {
+  box-sizing: border-box;
+  max-width: 100%;
+  overflow-wrap: break-word;
+  word-break: normal;
+}
+
+/* ── Certificado: no se corte en pantallas chicas ── */
+.cert-borde-exterior,
+.cert-borde-interior {
+  box-sizing: border-box;
+  overflow-wrap: break-word;
+}
+
+.cert-nombre-grande {
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+.cert-branding-footer {
+  overflow-wrap: break-word;
+  word-break: normal;
+}
+
+/* ── Botones: nunca más anchos que su contenedor ── */
+.btn-primario,
+.btn-secundario,
+.btn-mision,
+.btn-especial-grande,
+.menu-btn,
+.btn-jugador-entrar {
+  max-width: 100%;
+  box-sizing: border-box;
+  white-space: normal;
+  word-break: normal;
+}
+
+/* ── Campos de texto: respetar ancho ── */
+.campo-input,
+.campo-texto,
+.campo-nombre-grande {
+  box-sizing: border-box;
+  max-width: 100%;
+}
+
+/* ── Canvas del básquet y raspadita: nunca más anchos que el contenedor ── */
+.basquet-arena,
+#basquet-canvas,
+.raspadita-container,
+#raspadita-canvas {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* ── Media query: pantallas ≤ 480px ── */
+@media (max-width: 480px) {
+
+  /* Pantalla padres */
+  .padres-content {
+    padding: 20px 16px;
+    width: 100%;
+  }
+
+  .padres-titulo {
+    font-size: clamp(1.6rem, 8vw, 2.2rem);
+    word-break: break-word;
+  }
+
+  .padres-card {
+    padding: 18px 14px;
+    width: 100%;
+  }
+
+  .padres-seguridad {
+    font-size: 0.82rem;
+    padding: 12px 14px;
+    word-break: normal;
+    overflow-wrap: break-word;
+  }
+
+  /* Branding top */
+  .branding-top {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    padding: 10px 12px;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .brand-nombre {
+    font-size: 0.82rem;
+    overflow-wrap: break-word;
+    word-break: break-word;
+  }
+
+  .brand-sub {
+    font-size: 0.72rem;
+    overflow-wrap: break-word;
+    word-break: break-word;
+    white-space: normal;
+  }
+
+  /* Footer móvil */
+  .app-footer {
+    padding: 14px 16px 12px;
+    font-size: 0.72rem;
+    line-height: 1.7;
+    white-space: normal;
+    overflow-wrap: break-word;
+    word-break: normal;
+    text-align: center;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .footer-redes {
+    display: block;
+    margin-top: 4px;
+    overflow-wrap: break-word;
+    word-break: break-word;
+    font-size: 0.72rem;
+  }
+
+  /* Selector */
+  .selector-content {
+    padding: 28px 16px;
+    width: 100%;
+  }
+
+  .selector-titulo {
+    font-size: clamp(1.4rem, 7vw, 2rem);
+  }
+
+  .jugador-card {
+    padding: 12px 14px;
+    gap: 10px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .jugador-nombre {
+    font-size: 1rem;
+    overflow-wrap: break-word;
+    word-break: break-word;
+  }
+
+  .btn-jugador-entrar {
+    padding: 7px 14px;
+    font-size: 0.82rem;
+    white-space: nowrap;
+  }
+
+  /* Menú */
+  .menu-content {
+    padding: 16px;
+    width: 100%;
+  }
+
+  .menu-saludo {
+    font-size: clamp(1.4rem, 6vw, 1.9rem);
+    overflow-wrap: break-word;
+    word-break: break-word;
+  }
+
+  .menu-botones {
+    width: 100%;
+    max-width: 100%;
+    gap: 8px;
+  }
+
+  .menu-btn {
+    font-size: 0.92rem;
+    padding: 12px 16px;
+    width: 100%;
+    white-space: normal;
+  }
+
+  /* Bienvenida */
+  .bienvenida-content {
+    padding: 24px 16px;
+    width: 100%;
+  }
+
+  .saludo-personalizado {
+    font-size: clamp(1.5rem, 7vw, 2.2rem);
+    overflow-wrap: break-word;
+    word-break: break-word;
+  }
+
+  .carta-bienvenida {
+    padding: 18px 14px;
+  }
+
+  .panel-xp {
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .xp-item {
+    min-width: 80px;
+    padding: 8px 10px;
+  }
+
+  /* Mapa */
+  .mapa-content {
+    padding: 20px 14px 40px;
+  }
+
+  .mapa-header-row {
+    gap: 8px;
+  }
+
+  .pantalla-titulo {
+    font-size: clamp(1.5rem, 7vw, 2.2rem);
+    overflow-wrap: break-word;
+  }
+
+  .mision-card {
+    padding: 20px 16px;
+  }
+
+  .mision-recompensa {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .mision-recompensa span {
+    font-size: 0.75rem;
+  }
+
+  /* Misiones */
+  .mision-content {
+    padding: 20px 14px 50px;
+  }
+
+  .mision-titulo-grande {
+    font-size: clamp(1.5rem, 7vw, 2.4rem);
+    overflow-wrap: break-word;
+  }
+
+  .actividad-card {
+    padding: 20px 14px;
+  }
+
+  .mision-header {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .mision-xp-mini {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .mision-xp-mini span {
+    font-size: 0.78rem;
+    padding: 4px 10px;
+  }
+
+  /* Mezclador */
+  .mezclador {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .mezcla-item,
+  .mezcla-resultado {
+    min-width: 80px;
+    font-size: 0.85rem;
+    padding: 8px 10px;
+  }
+
+  /* Ruleta */
+  .ruleta-opciones {
+    gap: 6px;
+  }
+
+  .ruleta-opciones span {
+    font-size: 0.72rem;
+    padding: 3px 9px;
+  }
+
+  /* Básquet */
+  .basquet-arena-premium {
+    width: 100%;
+    border-radius: 14px;
+  }
+
+  .basquet-marcador {
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .bq-objetivo {
+    text-align: left;
+    width: 100%;
+  }
+
+  .basquet-mensaje {
+    font-size: 0.92rem;
+    padding: 10px 14px;
+    white-space: normal;
+    width: 85%;
+  }
+
+  /* Poderes foto */
+  .poderes-foto {
+    gap: 6px;
+  }
+
+  .poder-btn {
+    padding: 6px 12px;
+    font-size: 0.82rem;
+  }
+
+  /* Raspadita */
+  .raspadita-container {
+    width: 100%;
+  }
+
+  /* Tarjeta flip */
+  .tarjeta-flip {
+    width: 190px;
+    height: 140px;
+  }
+
+  /* Certificado */
+  .certificado-content {
+    padding: 20px 12px 40px;
+  }
+
+  .cert-borde-interior {
+    padding: 20px 14px;
+  }
+
+  .cert-titulo-club {
+    font-size: clamp(1.1rem, 5vw, 1.6rem);
+  }
+
+  .cert-nombre-grande {
+    font-size: clamp(1.4rem, 6vw, 2rem);
+    overflow-wrap: break-word;
+    word-break: break-word;
+  }
+
+  .cert-nivel {
+    font-size: clamp(1rem, 4vw, 1.4rem);
+  }
+
+  .cert-detalles {
+    flex-direction: column;
+    gap: 6px;
+    align-items: center;
+  }
+
+  .cert-branding-footer {
+    font-size: 0.7rem;
+    overflow-wrap: break-word;
+  }
+
+  .cert-redes {
+    overflow-wrap: break-word;
+    word-break: break-word;
+  }
+
+  .certificado-acciones {
+    flex-direction: column;
+    gap: 8px;
+    align-items: stretch;
+  }
+
+  .certificado-acciones .btn-primario,
+  .certificado-acciones .btn-secundario {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Recompensas */
+  .recompensas-content {
+    padding: 20px 14px 40px;
+  }
+
+  .trofeos-panel {
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .trofeo-item {
+    min-width: 90px;
+    padding: 14px 14px;
+  }
+
+  .logro-item {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .logro-xp {
+    margin-left: 0;
+  }
+
+  /* Recompensas acciones */
+  .recompensas-acciones {
+    flex-direction: column;
+    gap: 8px;
+    align-items: stretch;
+  }
+
+  .recompensas-acciones .btn-primario,
+  .recompensas-acciones .btn-secundario {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Historial */
+  .historial-content {
+    padding: 20px 14px 40px;
+  }
+
+  .historial-item {
+    grid-template-columns: 1fr;
+    padding: 14px 14px;
+    gap: 4px;
+  }
+
+  .historial-stats {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: flex-start;
+  }
+
+  /* Desafío */
+  .desafio-card {
+    padding: 20px 14px;
+  }
+
+  .desafio-instrucciones {
+    gap: 12px;
+  }
+
+  .desafio-campos label {
+    font-size: 0.85rem;
+  }
+
+  /* Insignias */
+  .insignia-slot {
+    width: 56px;
+    height: 56px;
+    font-size: 1.6rem;
+  }
+
+  .insignias-grid {
+    gap: 10px;
+  }
+
+  /* Progreso global */
+  .progreso-global {
+    padding: 14px 16px;
+  }
+
+  /* M3 estrellas */
+  .m3-estrella {
+    font-size: 1.7rem;
+  }
+
+  .m3-estrellas-fila {
+    gap: 8px;
+  }
+}
+
+/* ── Media query extra: pantallas ≤ 360px (gama baja) ── */
+@media (max-width: 360px) {
+  .padres-titulo {
+    font-size: 1.5rem;
+  }
+
+  .padres-card {
+    padding: 14px 12px;
+  }
+
+  .app-footer {
+    font-size: 0.68rem;
+    padding: 12px 12px 10px;
+  }
+
+  .menu-btn {
+    font-size: 0.85rem;
+    padding: 10px 14px;
+  }
+
+  .cert-borde-interior {
+    padding: 16px 10px;
+  }
+
+  .cert-nombre-grande {
+    font-size: 1.3rem;
+  }
+
+  .mision-card {
+    padding: 16px 12px;
+  }
+
+  .btn-primario {
+    padding: 12px 18px;
+    font-size: 0.95rem;
+  }
+
+  .tarjeta-flip {
+    width: 170px;
+    height: 130px;
+  }
 }
