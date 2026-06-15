@@ -175,7 +175,109 @@ function cargarDesdeStorage() {
 /* ══════════════════════════════════════════════════════════════
    INIT
 ═══════════════════════════════════════════════════════════════*/
+
+/* ══════════════════════════════════════════════════════════════
+   SISTEMA DE AUDIO
+   ─────────────────────────────────────────────────────────────
+   PARA CAMBIAR ARCHIVOS: modifica las rutas en AUDIO_CONFIG.
+   Subí los mp3 a la carpeta assets/audio/ en tu repositorio.
+═══════════════════════════════════════════════════════════════*/
+
+/* ── Configuración de audio — EDITÁ ESTAS RUTAS ──
+   assets/audio/musica-fondo.mp3  → música de fondo en loop
+   assets/audio/logro-activ.mp3   → sonido al completar actividad
+*/
+const AUDIO_CONFIG = {
+  musicaFondo: 'assets/audio/musica-fondo.mp3',
+  sonidoLogro: 'assets/audio/logro-activ.mp3',
+  volumenMusica: 0.28,   // 0.0 - 1.0
+  volumenLogro:  0.60,   // 0.0 - 1.0
+};
+
+const LS_AUDIO_KEY = 'clubcreadores_audio_on';
+
+let audioMusica = null;   // elemento Audio de música de fondo
+let audioLogro  = null;   // elemento Audio de logros
+let audioInicializado = false;
+let audioActivado = true; // preferencia del usuario
+
+/* ── Inicializar objetos Audio (sin reproducir todavía) ── */
+function inicializarAudio() {
+  if (audioInicializado) return;
+  audioInicializado = true;
+
+  // Leer preferencia guardada
+  const guardado = localStorage.getItem(LS_AUDIO_KEY);
+  audioActivado = guardado === null ? true : guardado === 'true';
+
+  try {
+    audioMusica = new Audio(AUDIO_CONFIG.musicaFondo);
+    audioMusica.loop   = true;
+    audioMusica.volume = AUDIO_CONFIG.volumenMusica;
+    audioMusica.preload = 'auto';
+    // Silencioso si está desactivado
+    if (!audioActivado) audioMusica.volume = 0;
+
+    audioLogro = new Audio(AUDIO_CONFIG.sonidoLogro);
+    audioLogro.volume = audioActivado ? AUDIO_CONFIG.volumenLogro : 0;
+    audioLogro.preload = 'auto';
+  } catch (e) {
+    // El archivo no existe todavía — no bloqueamos el juego
+    console.warn('[Audio] No se pudo cargar el audio:', e.message);
+    audioMusica = null;
+    audioLogro  = null;
+  }
+
+  actualizarBotonAudio();
+}
+
+/* ── Iniciar música de fondo (llamar tras el primer clic del usuario) ── */
+function iniciarMusicaFondo() {
+  inicializarAudio();
+  if (!audioMusica) return;
+  if (audioMusica.paused) {
+    audioMusica.play().catch(e => {
+      // Navegador bloqueó el autoplay — normal en mobile; se reintentará al próximo clic
+      console.warn('[Audio] Música en espera de interacción del usuario');
+    });
+  }
+}
+
+/* ── Sonido de logro / actividad completada ── */
+function sonidoLogro() {
+  if (!audioActivado || !audioLogro) return;
+  try {
+    audioLogro.currentTime = 0;
+    audioLogro.play().catch(() => {});
+  } catch(e) {}
+}
+
+/* ── Toggle sonido ON/OFF ── */
+function toggleAudio() {
+  audioActivado = !audioActivado;
+  localStorage.setItem(LS_AUDIO_KEY, audioActivado);
+  if (audioMusica) {
+    audioMusica.volume = audioActivado ? AUDIO_CONFIG.volumenMusica : 0;
+    if (audioActivado && audioMusica.paused) {
+      audioMusica.play().catch(() => {});
+    }
+  }
+  if (audioLogro) {
+    audioLogro.volume = audioActivado ? AUDIO_CONFIG.volumenLogro : 0;
+  }
+  actualizarBotonAudio();
+}
+
+/* ── Actualiza el ícono del botón de sonido ── */
+function actualizarBotonAudio() {
+  const btn = document.getElementById('btn-audio-toggle');
+  if (!btn) return;
+  btn.textContent = audioActivado ? '🔊' : '🔇';
+  btn.title       = audioActivado ? 'Silenciar' : 'Activar sonido';
+}
+
 document.addEventListener('DOMContentLoaded', () => {
+  inicializarAudio(); // Audio: cargar preferencia guardada
   // Ocultar TODAS las pantallas protegidas al inicio
   // Así no es posible llegar a ellas haciendo scroll en celular
   document.querySelectorAll('.screen.jugable').forEach(s => {
@@ -309,6 +411,7 @@ function cargarJugador(nombre) {
   e                 = p.partida;
   p.fechaUltimaPartida = new Date().toISOString();
   guardar();
+  iniciarMusicaFondo(); // Audio: primer clic del usuario = música de fondo
   irAPantalla('pantalla-menu');
 }
 
@@ -776,6 +879,7 @@ function desbloquearLogro(id) {
   e.logrosDesbloqueados.push(id);
   sumarXP(logro.xp);
   mostrarToast(logro.icono, `Logro: ${logro.nombre}`);
+  sonidoLogro(); // Audio: suena al desbloquear cualquier logro
   guardar();
 }
 
@@ -947,291 +1051,239 @@ function mezclarIdeas() {
 /* ══════════════════════════════════════════════════════════════
    MISIÓN 3 — Act 3.2 BÁSQUET (5 tiros, 3 encestes para ganar)
 ═══════════════════════════════════════════════════════════════*/
+/* ── Basketball: crearEstadoBq through dibujarBq ── */
 function crearEstadoBq() {
   return {
-    iniciado:       false,
-    dragging:       false,
+    session:        0,
+    activo:         false,
     enVuelo:        false,
-    anim:           null,
-    animIdle:       null,
+    dragging:       false,
+    ganado:         false,
     tirosTotal:     5,
     tirosUsados:    0,
     encestes:       0,
     encestesNeeded: 3,
-    ganado:         false,
     ball: { x:170, y:250, r:22, vx:0, vy:0 },
-    aro:  { x:170, y:68, innerW:54 },
+    aro:  { x:170, y:72, innerW:56 },
     dragStart: { x:0, y:0 },
     dragCurr:  { x:0, y:0 },
-    ideaActual: '',
-    ctx:    null,
-    canvas: null,
-    estela: [],
+    estela:     [],
     particulas: [],
-    pulso: 1,
+    pulso:      1,
     portalGlow: 0,
-    tick: 0,
+    tick:       0,
+    rafId:      null,
+    canvas:     null,
+    ctx:        null,
+    ideaActual: '',
   };
 }
 let bqState = crearEstadoBq();
 
 function actualizarMarcador() {
-  const encEl = document.getElementById('bq-encestes');
-  const tirEl = document.getElementById('bq-tiros');
-  if (encEl) encEl.textContent = bqState.encestes;
-  if (tirEl) tirEl.textContent = bqState.tirosUsados;
+  const enc = document.getElementById('bq-encestes');
+  const tir = document.getElementById('bq-tiros');
+  if (enc) enc.textContent = bqState.encestes;
+  if (tir) tir.textContent = bqState.tirosUsados;
+}
+
+function pararBq() {
+  cancelAnimationFrame(bqState.rafId);
+  bqState.rafId = null;
+  bqState.session++;
 }
 
 function inicializarBasquet() {
   const canvas = document.getElementById('basquet-canvas');
   if (!canvas) return;
-  if (bqState.iniciado && !bqState.ganado) return;
+  if (bqState.activo && !bqState.ganado) return;
   if (yaCompleto('basquet')) return;
 
-  cancelAnimationFrame(bqState.anim);
-  cancelAnimationFrame(bqState.animIdle);
+  pararBq();
+  const s = crearEstadoBq();
+  s.canvas     = canvas;
+  s.ctx        = canvas.getContext('2d');
+  s.ball.x     = canvas.width / 2;
+  s.ball.y     = canvas.height - 52;
+  s.aro.x      = canvas.width / 2;
+  s.activo     = true;
+  s.ideaActual = IDEAS_MAGICAS_BASQUET[Math.floor(Math.random() * IDEAS_MAGICAS_BASQUET.length)];
+  bqState = s;
 
-  bqState = crearEstadoBq();
-  bqState.canvas = canvas;
-  bqState.ctx    = canvas.getContext('2d');
-  bqState.ideaActual = IDEAS_MAGICAS_BASQUET[Math.floor(Math.random()*IDEAS_MAGICAS_BASQUET.length)];
-  bqState.ball.x = canvas.width / 2;
-  bqState.ball.y = canvas.height - 50;
-  bqState.aro.x  = canvas.width / 2;
-  bqState.iniciado = true;
-
-  const card = document.getElementById('bq-resultado-card');
-  if (card) card.classList.add('oculto');
-
+  ocultarTarjetaBq(); ocultarMsgBq();
   actualizarMarcador();
   registrarEventosBq(canvas);
-  loopIdleBq();
-}
-
-function loopIdleBq() {
-  const bq = bqState;
-  if (!bq.canvas || !bq.ctx) return;
-  bq.tick++;
-  bq.pulso = Math.sin(bq.tick * 0.07) * 0.1 + 1;
-  bq.particulas = bq.particulas.filter(p => p.vida > 0);
-  bq.particulas.forEach(p => {
-    p.x += p.vx; p.y += p.vy; p.vy += 0.15; p.vida -= 3; p.r *= 0.97;
-  });
-  if (bq.portalGlow > 0) bq.portalGlow -= 2;
-  if (!bq.enVuelo) dibujarBq();
-  if (!bq.ganado) bq.animIdle = requestAnimationFrame(loopIdleBq);
+  loopBq(bqState.session);
 }
 
 function reiniciarBasquet() {
   if (yaCompleto('basquet')) return;
-  cancelAnimationFrame(bqState.anim);
-  cancelAnimationFrame(bqState.animIdle);
-
-  const btn = document.getElementById('btn-reintentar-basquet');
-  if (btn) btn.classList.add('oculto');
-  const card = document.getElementById('bq-resultado-card');
-  if (card) card.classList.add('oculto');
-  const msgEl = document.getElementById('basquet-mensaje');
-  if (msgEl) { msgEl.style.display = 'none'; }
-
+  pararBq();
+  ocultarTarjetaBq(); ocultarMsgBq();
   bqState.tirosUsados = 0;
   bqState.encestes    = 0;
   bqState.enVuelo     = false;
   bqState.dragging    = false;
   bqState.ganado      = false;
+  bqState.activo      = true;
   bqState.estela      = [];
   bqState.particulas  = [];
   bqState.portalGlow  = 0;
-  bqState.ideaActual  = IDEAS_MAGICAS_BASQUET[Math.floor(Math.random()*IDEAS_MAGICAS_BASQUET.length)];
+  bqState.ideaActual  = IDEAS_MAGICAS_BASQUET[Math.floor(Math.random() * IDEAS_MAGICAS_BASQUET.length)];
   const cv = bqState.canvas;
-  if (cv) bqState.ball = { x: cv.width/2, y: cv.height-50, r:22, vx:0, vy:0 };
+  if (cv) bqState.ball = { x:cv.width/2, y:cv.height-52, r:22, vx:0, vy:0 };
   actualizarMarcador();
-  loopIdleBq();
+  mostrarInstruccion(true);
+  loopBq(bqState.session);
 }
 
-function registrarEventosBq(canvas) {
-  const newCanvas = canvas.cloneNode(true);
-  canvas.parentNode.replaceChild(newCanvas, canvas);
-  bqState.canvas = newCanvas;
-  bqState.ctx    = newCanvas.getContext('2d');
-
-  const W = newCanvas.width, H = newCanvas.height;
-  function scP(cx,cy,rect) { return {x:(cx-rect.left)*(W/rect.width), y:(cy-rect.top)*(H/rect.height)}; }
-  function getPos(ev,rect)  { return scP(ev.clientX, ev.clientY, rect); }
-  function getTPos(ev,rect) { const t=ev.touches[0]; return scP(t.clientX, t.clientY, rect); }
-  function cercaBola(px,py) {
-    const dx=px-bqState.ball.x, dy=py-bqState.ball.y;
-    return Math.sqrt(dx*dx+dy*dy) < bqState.ball.r + 22;
-  }
-  function lanzar() {
-    if (bqState.ganado || bqState.enVuelo) return;
-    const dx = bqState.dragCurr.x - bqState.dragStart.x;
-    const dy = bqState.dragCurr.y - bqState.dragStart.y;
-    if (Math.abs(dx) < 5 && Math.abs(dy) < 5) { bqState.dragging = false; return; }
-    bqState.ball.vx = -dx * 0.21;
-    bqState.ball.vy = -dy * 0.21;
-    bqState.enVuelo  = true;
-    bqState.dragging = false;
-    bqState.estela   = [];
-    bqState.tirosUsados++;
-    actualizarMarcador();
-    const instrEl = document.getElementById('basquet-instruccion');
-    if (instrEl) instrEl.style.opacity = '0';
-    cancelAnimationFrame(bqState.animIdle);
-    bqState.anim = requestAnimationFrame(fisicaBq);
-  }
-
-  newCanvas.addEventListener('mousedown', ev => {
-    if (bqState.ganado || bqState.enVuelo) return;
-    const r=newCanvas.getBoundingClientRect(), pos=getPos(ev,r);
-    if (cercaBola(pos.x,pos.y)) { bqState.dragging=true; bqState.dragStart={...pos}; bqState.dragCurr={...pos}; }
-  });
-  newCanvas.addEventListener('mousemove', ev => {
-    if (!bqState.dragging) return;
-    bqState.dragCurr = getPos(ev, newCanvas.getBoundingClientRect()); dibujarBq();
-  });
-  newCanvas.addEventListener('mouseup',    () => { if (bqState.dragging) lanzar(); });
-  newCanvas.addEventListener('mouseleave', () => { if (bqState.dragging) { bqState.dragging=false; dibujarBq(); } });
-  newCanvas.addEventListener('touchstart', ev => {
-    ev.preventDefault();
-    if (bqState.ganado || bqState.enVuelo) return;
-    const r=newCanvas.getBoundingClientRect(), pos=getTPos(ev,r);
-    if (cercaBola(pos.x,pos.y)) { bqState.dragging=true; bqState.dragStart={...pos}; bqState.dragCurr={...pos}; }
-  }, {passive:false});
-  newCanvas.addEventListener('touchmove', ev => {
-    ev.preventDefault();
-    if (!bqState.dragging) return;
-    bqState.dragCurr = getTPos(ev, newCanvas.getBoundingClientRect()); dibujarBq();
-  }, {passive:false});
-  newCanvas.addEventListener('touchend', ev => {
-    ev.preventDefault(); if (bqState.dragging) lanzar();
-  }, {passive:false});
-
-  dibujarBq();
+function mostrarInstruccion(v) {
+  const el = document.getElementById('basquet-instruccion');
+  if (el) el.style.opacity = v ? '1' : '0';
+}
+function ocultarTarjetaBq() {
+  const c = document.getElementById('bq-resultado-card');
+  if (c) c.classList.add('oculto');
+}
+function ocultarMsgBq() {
+  const m = document.getElementById('basquet-mensaje');
+  if (m) m.style.display = 'none';
 }
 
-function fisicaBq() {
+function loopBq(sid) {
+  if (sid !== bqState.session) return;
+  if (!bqState.activo || !bqState.canvas) return;
+  bqState.tick++;
+  bqState.pulso = Math.sin(bqState.tick * 0.07) * 0.1 + 1;
+  bqState.particulas = bqState.particulas.filter(p => p.vida > 0);
+  bqState.particulas.forEach(p => { p.x+=p.vx; p.y+=p.vy; p.vy+=0.14; p.vida-=3; p.r*=0.97; });
+  if (bqState.portalGlow > 0) bqState.portalGlow -= 1.5;
+  if (bqState.enVuelo) {
+    actualizarFisica(sid);
+  } else {
+    dibujarBq();
+    if (!bqState.ganado) bqState.rafId = requestAnimationFrame(() => loopBq(sid));
+  }
+}
+
+function actualizarFisica(sid) {
+  if (sid !== bqState.session) return;
   const bq = bqState;
   if (!bq.enVuelo || !bq.canvas) return;
-  const W=bq.canvas.width, H=bq.canvas.height;
+  const W = bq.canvas.width, H = bq.canvas.height;
 
-  bq.estela.push({x:bq.ball.x, y:bq.ball.y, r:bq.ball.r});
+  bq.estela.push({ x:bq.ball.x, y:bq.ball.y, r:bq.ball.r });
   if (bq.estela.length > 11) bq.estela.shift();
 
-  bq.ball.x  += bq.ball.vx;
-  bq.ball.y  += bq.ball.vy;
-  bq.ball.vy += 0.36;
-  bq.ball.vx *= 0.993;
+  bq.ball.x += bq.ball.vx; bq.ball.y += bq.ball.vy;
+  bq.ball.vy += 0.36; bq.ball.vx *= 0.993;
 
-  if (bq.ball.x - bq.ball.r < 0) { bq.ball.x=bq.ball.r; bq.ball.vx*=-0.55; }
-  if (bq.ball.x + bq.ball.r > W) { bq.ball.x=W-bq.ball.r; bq.ball.vx*=-0.55; }
-
-  bq.particulas = bq.particulas.filter(p => p.vida > 0);
-  bq.particulas.forEach(p => { p.x+=p.vx; p.y+=p.vy; p.vy+=0.2; p.vida-=4; p.r*=0.96; });
-  if (bq.portalGlow > 0) bq.portalGlow -= 2;
-  bq.tick++;
+  if (bq.ball.x - bq.ball.r < 0)  { bq.ball.x = bq.ball.r;     bq.ball.vx *= -0.55; }
+  if (bq.ball.x + bq.ball.r > W)  { bq.ball.x = W - bq.ball.r; bq.ball.vx *= -0.55; }
 
   const aroX1 = bq.aro.x - bq.aro.innerW/2;
   const aroX2 = bq.aro.x + bq.aro.innerW/2;
-  const aroY  = bq.aro.y + 12;
-  const entraX   = bq.ball.x > aroX1 + bq.ball.r*0.35 && bq.ball.x < aroX2 - bq.ball.r*0.35;
-  const pasandoY = bq.ball.y > aroY && bq.ball.y < aroY + 35;
+  const aroY  = bq.aro.y + 13;
+  const entraX  = bq.ball.x > aroX1 + bq.ball.r*0.35 && bq.ball.x < aroX2 - bq.ball.r*0.35;
+  const pasandoY = bq.ball.y > aroY && bq.ball.y < aroY + 36;
 
   if (entraX && pasandoY && bq.ball.vy > 0) {
     bq.encestes++;
-    bq.enVuelo   = false;
+    bq.enVuelo    = false;
     bq.portalGlow = 100;
-    cancelAnimationFrame(bq.anim);
-    crearParticulasBq(bq.aro.x, bq.aro.y + 12);
+    bq.estela     = [];
+    crearParticulasBq(bq.aro.x, bq.aro.y + 13);
     actualizarMarcador();
     dibujarBq();
+    sonidoLogro();
+    const mySid = bq.session;
     if (bq.encestes >= bq.encestesNeeded) {
-      bq.ganado = true;
-      setTimeout(() => mostrarTarjetaBq(true), 700);
+      bq.ganado = true; bq.activo = false;
+      cancelAnimationFrame(bq.rafId); bq.rafId = null;
+      setTimeout(() => { if (mySid !== bqState.session) return; mostrarTarjetaBq(true); }, 700);
     } else {
-      const restantes = bq.tirosTotal - bq.tirosUsados;
-      showBqMsg(`✅ ¡Enceste! ${bq.encestes}/${bq.encestesNeeded} — quedan ${restantes} tiro${restantes!==1?'s':''}`, 'enceste');
-      setTimeout(() => loopIdleBq(), 1700);
+      const rest = bq.tirosTotal - bq.tirosUsados;
+      showBqMsg(`Enceste ${bq.encestes}/${bq.encestesNeeded} — quedan ${rest} tiro${rest!==1?'s':''}`, 'enceste');
+      setTimeout(() => {
+        if (mySid !== bqState.session) return;
+        resetBallPos(); bqState.enVuelo = false; mostrarInstruccion(true);
+        bqState.rafId = requestAnimationFrame(() => loopBq(mySid));
+      }, 1600);
     }
     return;
   }
 
   if (bq.ball.y > H + 40) {
-    bq.enVuelo = false;
-    cancelAnimationFrame(bq.anim);
-    const restantes = bq.tirosTotal - bq.tirosUsados;
-    if (restantes <= 0 && bq.encestes < bq.encestesNeeded) {
-      dibujarBq();
-      setTimeout(() => mostrarTarjetaBq(false), 500);
+    bq.enVuelo = false; bq.estela = [];
+    dibujarBq();
+    const rest   = bq.tirosTotal - bq.tirosUsados;
+    const mySid  = bq.session;
+    if (rest <= 0 && bq.encestes < bq.encestesNeeded) {
+      bq.activo = false;
+      cancelAnimationFrame(bq.rafId); bq.rafId = null;
+      setTimeout(() => { if (mySid !== bqState.session) return; mostrarTarjetaBq(false); }, 500);
     } else {
       const msgs = [
-        `¡Casi! Tu idea pasó cerquita. ${restantes} tiro${restantes!==1?'s':''} restante${restantes!==1?'s':''}`,
-        `¡Ajustá tu magia! Quedan ${restantes} intento${restantes!==1?'s':''}`,
-        `¡Cerca del portal! ${restantes} tiro${restantes!==1?'s':''} más`,
+        `Quedan ${rest} tiro${rest!==1?'s':''}. Ajusta la direccion!`,
+        `Tu idea paso cerquita del portal! ${rest} intento${rest!==1?'s':''} mas`,
+        `Cerca! Quedan ${rest} lanzamiento${rest!==1?'s':''}. Vos podes!`,
       ];
       showBqMsg(msgs[Math.floor(Math.random()*msgs.length)], 'fallo');
       setTimeout(() => {
-        const cv = bqState.canvas;
-        if (cv) bqState.ball = {x:cv.width/2+(Math.random()-.5)*30, y:cv.height-50, r:22, vx:0, vy:0};
-        bqState.estela = [];
-        const instrEl = document.getElementById('basquet-instruccion');
-        if (instrEl) instrEl.style.opacity = '1';
-        loopIdleBq();
-      }, 1400);
+        if (mySid !== bqState.session) return;
+        resetBallPos(); bqState.enVuelo = false; mostrarInstruccion(true);
+        bqState.rafId = requestAnimationFrame(() => loopBq(mySid));
+      }, 1500);
     }
     return;
   }
 
   dibujarBq();
-  bq.anim = requestAnimationFrame(fisicaBq);
+  bq.rafId = requestAnimationFrame(() => actualizarFisica(sid));
+}
+
+function resetBallPos() {
+  const cv = bqState.canvas; if (!cv) return;
+  bqState.ball = { x:cv.width/2+(Math.random()-.5)*28, y:cv.height-52, r:22, vx:0, vy:0 };
+  bqState.estela = [];
 }
 
 function crearParticulasBq(cx, cy) {
   const cols = ['#f5c842','#00d4a8','#c4a8ff','#ff6bb5','#ffffff','#a0f0ff'];
-  for (let i = 0; i < 24; i++) {
-    const ang = Math.random() * Math.PI * 2;
-    const spd = 1.5 + Math.random() * 4.5;
-    bqState.particulas.push({
-      x:cx, y:cy,
-      vx:Math.cos(ang)*spd, vy:Math.sin(ang)*spd-2.5,
-      r: 2.5 + Math.random() * 4.5,
-      vida: 80 + Math.random() * 50,
-      color: cols[Math.floor(Math.random()*cols.length)],
-    });
+  for (let i=0; i<24; i++) {
+    const ang = Math.random()*Math.PI*2, spd = 1.5+Math.random()*4;
+    bqState.particulas.push({ x:cx, y:cy, vx:Math.cos(ang)*spd, vy:Math.sin(ang)*spd-2.5,
+      r:2.5+Math.random()*4, vida:80+Math.random()*50, color:cols[Math.floor(Math.random()*cols.length)] });
   }
 }
 
 function showBqMsg(msg, tipo) {
   const el = document.getElementById('basquet-mensaje');
   if (!el) return;
-  el.textContent = msg;
-  el.className   = 'bq-overlay-msg bq-msg-' + tipo;
-  el.style.display = 'block';
-  setTimeout(() => { el.style.display = 'none'; }, 1600);
+  el.textContent = msg; el.className='bq-overlay-msg bq-msg-'+tipo; el.style.display='block';
+  setTimeout(() => { el.style.display='none'; }, 1600);
 }
 
 function mostrarTarjetaBq(ganado) {
-  const card   = document.getElementById('bq-resultado-card');
-  const icono  = document.getElementById('bq-res-icono');
-  const titulo = document.getElementById('bq-res-titulo');
-  const texto  = document.getElementById('bq-res-texto');
-  const recomp = document.getElementById('bq-res-recompensa');
-  const btn    = document.getElementById('bq-res-btn');
+  const card=document.getElementById('bq-resultado-card');
+  const icono=document.getElementById('bq-res-icono');
+  const titulo=document.getElementById('bq-res-titulo');
+  const texto=document.getElementById('bq-res-texto');
+  const recomp=document.getElementById('bq-res-recompensa');
+  const btn=document.getElementById('bq-res-btn');
   if (!card) return;
-
   if (ganado) {
-    if (icono)  icono.textContent  = '🏆';
-    if (titulo) titulo.textContent = '¡Portal activado!';
-    if (texto)  texto.textContent  = 'Lograste encestar tus ideas mágicas. Tu creatividad abrió el camino.';
-    if (recomp && !yaCompleto('basquet')) recomp.classList.remove('oculto');
-    else if (recomp) recomp.classList.add('oculto');
-    if (btn) { btn.textContent='Continuar misión →'; btn.className='bq-res-btn bq-res-btn-victoria'; }
+    if(icono)  icono.textContent  = '🏆';
+    if(titulo) titulo.textContent = 'Portal activado!';
+    if(texto)  texto.textContent  = 'Lograste encestar tus ideas. Tu creatividad abrio el camino.';
+    if(recomp) recomp.classList.toggle('oculto', yaCompleto('basquet'));
+    if(btn) { btn.textContent='Continuar mision'; btn.className='bq-res-btn bq-res-btn-victoria'; }
   } else {
-    if (icono)  icono.textContent  = '💫';
-    if (titulo) titulo.textContent = '¡Casi lo lográs!';
-    if (texto)  texto.textContent  = 'Tus ideas estuvieron cerca del portal. ¡Tu magia sigue creciendo!';
-    if (recomp) recomp.classList.add('oculto');
-    if (btn) { btn.textContent='🔄 Volver a intentar'; btn.className='bq-res-btn bq-res-btn-reintento'; }
+    if(icono)  icono.textContent  = 'Casi!';
+    if(titulo) titulo.textContent = 'Casi lo lograste!';
+    if(texto)  texto.textContent  = 'Tus ideas estuvieron cerca. Intentalo otra vez!';
+    if(recomp) recomp.classList.add('oculto');
+    if(btn) { btn.textContent='Volver a intentar'; btn.className='bq-res-btn bq-res-btn-reintento'; }
   }
   card.classList.remove('oculto');
   card.classList.add('bq-card-entrando');
@@ -1239,240 +1291,112 @@ function mostrarTarjetaBq(ganado) {
 }
 
 function onBqBotonResultado() {
-  const card = document.getElementById('bq-resultado-card');
-  if (bqState.ganado) {
-    if (card) card.classList.add('oculto');
-    onBqGanado();
-  } else {
-    if (card) card.classList.add('oculto');
-    reiniciarBasquet();
-  }
+  if (bqState.ganado) { ocultarTarjetaBq(); onBqGanado(); }
+  else { ocultarTarjetaBq(); reiniciarBasquet(); }
 }
 
 function onBqGanado() {
-  dibujarBq();
   if (!yaCompleto('basquet')) {
     marcarAct('basquet');
     mostrarRes('resultado-basquet');
     addEstrellaM3(40);
     desbloquearLogro('basquet_ok');
     desbloquearSig('act-3-3');
+    sonidoLogro();
   }
+}
+
+function registrarEventosBq(canvas) {
+  const nc = canvas.cloneNode(true);
+  canvas.parentNode.replaceChild(nc, canvas);
+  bqState.canvas = nc; bqState.ctx = nc.getContext('2d');
+  const W=nc.width, H=nc.height;
+  function toC(cx,cy) { const r=nc.getBoundingClientRect(); return {x:(cx-r.left)*(W/r.width), y:(cy-r.top)*(H/r.height)}; }
+  function cerca(px,py) { const dx=px-bqState.ball.x,dy=py-bqState.ball.y; return Math.sqrt(dx*dx+dy*dy)<bqState.ball.r+22; }
+  function lanzar() {
+    if (bqState.ganado||bqState.enVuelo||!bqState.activo) return;
+    const dx=bqState.dragCurr.x-bqState.dragStart.x, dy=bqState.dragCurr.y-bqState.dragStart.y;
+    if (Math.abs(dx)<5&&Math.abs(dy)<5) { bqState.dragging=false; return; }
+    cancelAnimationFrame(bqState.rafId); bqState.rafId=null;
+    bqState.ball.vx=-dx*0.21; bqState.ball.vy=-dy*0.21;
+    bqState.enVuelo=true; bqState.dragging=false;
+    bqState.tirosUsados++; bqState.estela=[];
+    actualizarMarcador(); mostrarInstruccion(false);
+    bqState.rafId = requestAnimationFrame(() => loopBq(bqState.session));
+  }
+  nc.addEventListener('mousedown', ev => { if(bqState.ganado||bqState.enVuelo||!bqState.activo) return; const pos=toC(ev.clientX,ev.clientY); if(cerca(pos.x,pos.y)){bqState.dragging=true;bqState.dragStart={...pos};bqState.dragCurr={...pos};} });
+  nc.addEventListener('mousemove', ev => { if(!bqState.dragging) return; bqState.dragCurr=toC(ev.clientX,ev.clientY); dibujarBq(); });
+  nc.addEventListener('mouseup',   () => { if(bqState.dragging) lanzar(); });
+  nc.addEventListener('mouseleave',() => { if(bqState.dragging){bqState.dragging=false;dibujarBq();} });
+  nc.addEventListener('touchstart', ev=>{ev.preventDefault(); if(bqState.ganado||bqState.enVuelo||!bqState.activo)return; const t=ev.touches[0],pos=toC(t.clientX,t.clientY); if(cerca(pos.x,pos.y)){bqState.dragging=true;bqState.dragStart={...pos};bqState.dragCurr={...pos};}},{passive:false});
+  nc.addEventListener('touchmove',  ev=>{ev.preventDefault(); if(!bqState.dragging)return; const t=ev.touches[0];bqState.dragCurr=toC(t.clientX,t.clientY);dibujarBq();},{passive:false});
+  nc.addEventListener('touchend',   ev=>{ev.preventDefault(); if(bqState.dragging)lanzar();},{passive:false});
+  dibujarBq();
 }
 
 function dibujarBq() {
-  const bq = bqState;
-  if (!bq.ctx || !bq.canvas) return;
+  const bq=bqState; if(!bq.ctx||!bq.canvas) return;
   const ctx=bq.ctx, W=bq.canvas.width, H=bq.canvas.height;
-  ctx.clearRect(0, 0, W, H);
-
-  /* Fondo galáctico */
-  const bgGrad = ctx.createLinearGradient(0,0,W,H);
-  bgGrad.addColorStop(0,   '#050010');
-  bgGrad.addColorStop(0.4, '#0d0125');
-  bgGrad.addColorStop(1,   '#140538');
-  ctx.fillStyle = bgGrad;
-  ctx.fillRect(0, 0, W, H);
-
-  /* Nebulosas sutiles */
-  const neb1 = ctx.createRadialGradient(W*.3,H*.3,10, W*.3,H*.3,W*.6);
-  neb1.addColorStop(0,'rgba(100,30,180,.12)'); neb1.addColorStop(1,'rgba(0,0,0,0)');
-  ctx.fillStyle=neb1; ctx.fillRect(0,0,W,H);
-  const neb2 = ctx.createRadialGradient(W*.75,H*.6,5, W*.75,H*.6,W*.5);
-  neb2.addColorStop(0,'rgba(0,180,140,.08)'); neb2.addColorStop(1,'rgba(0,0,0,0)');
-  ctx.fillStyle=neb2; ctx.fillRect(0,0,W,H);
-
-  /* Estrellas con parpadeo */
-  const stars = [
-    [22,28,1.4,.7],[58,75,1.0,.5],[285,38,1.6,.8],[298,115,1.1,.6],
-    [42,175,1.3,.7],[198,18,1.8,.9],[148,195,1.0,.5],[238,155,1.5,.7],
-    [310,200,1.2,.6],[80,130,1.0,.4],[260,80,1.3,.6],[120,60,.9,.4],
-    [15,240,1.1,.5],[180,240,1.0,.4],[70,210,1.4,.7],[325,170,1.0,.5],
-  ];
-  stars.forEach(([sx,sy,sr,al]) => {
-    const tw = .5 + Math.abs(Math.sin(bq.tick*.025 + sx*.09))*.5;
-    ctx.fillStyle = `rgba(255,255,255,${al*tw})`;
-    ctx.beginPath(); ctx.arc(sx,sy,sr,0,Math.PI*2); ctx.fill();
-  });
-
-  /* Partículas flotando */
-  bq.particulas.forEach(p => {
-    const al = Math.max(0, p.vida/130);
-    ctx.globalAlpha = al;
-    ctx.fillStyle = p.color;
-    ctx.beginPath(); ctx.arc(p.x,p.y,Math.max(.4,p.r),0,Math.PI*2); ctx.fill();
-  });
-  ctx.globalAlpha = 1;
-
-  /* Línea de lanzamiento */
-  const lzGrad = ctx.createLinearGradient(0,H-30,W,H-30);
-  lzGrad.addColorStop(0,'rgba(196,168,255,0)');
-  lzGrad.addColorStop(.2,'rgba(196,168,255,.22)');
-  lzGrad.addColorStop(.8,'rgba(196,168,255,.22)');
-  lzGrad.addColorStop(1,'rgba(196,168,255,0)');
-  ctx.strokeStyle=lzGrad; ctx.lineWidth=1; ctx.setLineDash([8,5]);
-  ctx.beginPath(); ctx.moveTo(0,H-30); ctx.lineTo(W,H-30); ctx.stroke();
-  ctx.setLineDash([]);
+  ctx.clearRect(0,0,W,H);
+  const bgG=ctx.createLinearGradient(0,0,0,H);
+  bgG.addColorStop(0,'#060012'); bgG.addColorStop(.5,'#0e0128'); bgG.addColorStop(1,'#160540');
+  ctx.fillStyle=bgG; ctx.fillRect(0,0,W,H);
+  const neb=ctx.createRadialGradient(W*.35,H*.3,0,W*.35,H*.3,W*.7);
+  neb.addColorStop(0,'rgba(90,20,170,.13)'); neb.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle=neb; ctx.fillRect(0,0,W,H);
+  const sL=[[22,28,1.4,.7],[60,78,1.0,.5],[285,36,1.6,.8],[298,110,1.1,.6],[44,172,1.3,.7],
+    [200,16,1.8,.9],[148,192,1.0,.5],[240,152,1.5,.7],[310,198,1.2,.6],[82,128,1.0,.4],
+    [262,76,1.3,.6],[122,58,.9,.4],[18,238,1.1,.5],[182,238,1.0,.4],[326,168,1.0,.5]];
+  sL.forEach(([sx,sy,sr,al])=>{ const tw=.5+Math.abs(Math.sin(bq.tick*.025+sx*.09))*.5; ctx.fillStyle=`rgba(255,255,255,${al*tw})`; ctx.beginPath(); ctx.arc(sx,sy,sr,0,Math.PI*2); ctx.fill(); });
+  bq.particulas.forEach(p=>{ ctx.globalAlpha=Math.max(0,p.vida/130); ctx.fillStyle=p.color; ctx.beginPath(); ctx.arc(p.x,p.y,Math.max(.4,p.r),0,Math.PI*2); ctx.fill(); }); ctx.globalAlpha=1;
+  const lzG=ctx.createLinearGradient(0,H-30,W,H-30);
+  lzG.addColorStop(0,'rgba(196,168,255,0)'); lzG.addColorStop(.25,'rgba(196,168,255,.22)');
+  lzG.addColorStop(.75,'rgba(196,168,255,.22)'); lzG.addColorStop(1,'rgba(196,168,255,0)');
+  ctx.strokeStyle=lzG; ctx.lineWidth=1; ctx.setLineDash([8,5]);
+  ctx.beginPath(); ctx.moveTo(0,H-30); ctx.lineTo(W,H-30); ctx.stroke(); ctx.setLineDash([]);
   ctx.fillStyle='rgba(196,168,255,.28)'; ctx.font='9px Nunito,sans-serif'; ctx.textAlign='center';
-  ctx.fillText('ZONA DE LANZAMIENTO', W/2, H-16);
-
-  /* Portal / Aro */
-  const ax=bq.aro.x, ay=bq.aro.y, gi=bq.portalGlow/100;
-  const hR = bq.aro.innerW*.75 + gi*22;
-  const haloG = ctx.createRadialGradient(ax,ay+12,0, ax,ay+12,hR+32);
-  haloG.addColorStop(0,`rgba(245,200,66,${.07+gi*.3})`);
-  haloG.addColorStop(.5,`rgba(245,200,66,${.03+gi*.12})`);
-  haloG.addColorStop(1,'rgba(245,200,66,0)');
-  ctx.fillStyle=haloG; ctx.beginPath(); ctx.arc(ax,ay+12,hR+32,0,Math.PI*2); ctx.fill();
-
-  /* Tablero */
-  const brdG = ctx.createLinearGradient(ax-54,ay-44, ax+54,ay);
-  brdG.addColorStop(0,'rgba(80,20,140,.5)'); brdG.addColorStop(1,'rgba(40,10,80,.4)');
-  ctx.fillStyle=brdG;
-  ctx.strokeStyle=`rgba(155,89,245,${.4+gi*.4})`; ctx.lineWidth=1.5;
+  ctx.fillText('ZONA DE LANZAMIENTO',W/2,H-15);
+  const ax=bq.aro.x, ay=bq.aro.y, gi=Math.min(1,bq.portalGlow/100);
+  const hR=bq.aro.innerW*.75+gi*24;
+  const hG=ctx.createRadialGradient(ax,ay+13,0,ax,ay+13,hR+32);
+  hG.addColorStop(0,`rgba(245,200,66,${.06+gi*.3})`); hG.addColorStop(.6,`rgba(245,200,66,${.02+gi*.1})`); hG.addColorStop(1,'rgba(245,200,66,0)');
+  ctx.fillStyle=hG; ctx.beginPath(); ctx.arc(ax,ay+13,hR+32,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='rgba(70,15,130,.5)'; ctx.strokeStyle=`rgba(155,89,245,${.4+gi*.4})`; ctx.lineWidth=1.5;
   ctx.shadowColor='rgba(155,89,245,.4)'; ctx.shadowBlur=6+gi*10;
-  ctx.beginPath();
-  if(ctx.roundRect) ctx.roundRect(ax-54,ay-44,108,40,6); else ctx.rect(ax-54,ay-44,108,40);
+  ctx.beginPath(); if(ctx.roundRect)ctx.roundRect(ax-54,ay-44,108,42,6); else ctx.rect(ax-54,ay-44,108,42);
   ctx.fill(); ctx.stroke(); ctx.shadowBlur=0;
-  ctx.fillStyle=`rgba(245,200,66,${.85+gi*.15})`; ctx.font='bold 10px Nunito,sans-serif'; ctx.textAlign='center';
-  ctx.fillText('✨ PORTAL MÁGICO ✨', ax, ay-24);
+  ctx.fillStyle=`rgba(245,200,66,${.88+gi*.12})`; ctx.font='bold 10px Nunito,sans-serif'; ctx.textAlign='center';
+  ctx.fillText('PORTAL MAGICO',ax,ay-24);
   ctx.fillStyle='rgba(196,168,255,.65)'; ctx.font='8px Nunito,sans-serif';
-  ctx.fillText(`${bq.encestes}/${bq.encestesNeeded} ideas encestadas`, ax, ay-10);
-
-  /* Soporte */
-  const sopG = ctx.createLinearGradient(ax,ay, ax,ay+34);
-  sopG.addColorStop(0,'#f5c842'); sopG.addColorStop(1,'rgba(245,200,66,.25)');
-  ctx.strokeStyle=sopG; ctx.lineWidth=3;
-  ctx.shadowColor='rgba(245,200,66,.5)'; ctx.shadowBlur=4;
-  ctx.beginPath(); ctx.moveTo(ax,ay-3); ctx.lineTo(ax,ay+34); ctx.stroke(); ctx.shadowBlur=0;
-
-  /* Anillo del aro con ellipse (profundidad 3D) */
-  const aroGlow = 8 + gi*20;
-  ctx.shadowColor=`rgba(245,200,66,${.7+gi*.3})`; ctx.shadowBlur=aroGlow;
-  ctx.strokeStyle=`rgba(245,200,66,${.82+gi*.18})`; ctx.lineWidth=5;
-  ctx.beginPath(); ctx.ellipse(ax,ay+12, bq.aro.innerW/2+4, 7.5, 0,0,Math.PI*2); ctx.stroke();
-  ctx.strokeStyle=`rgba(255,240,150,${.45+gi*.4})`; ctx.lineWidth=2;
-  ctx.beginPath(); ctx.ellipse(ax,ay+12, bq.aro.innerW/2, 5.5, 0,0,Math.PI*2); ctx.stroke();
-  ctx.shadowBlur=0;
-
-  /* Red mágica */
-  const ra=.28+gi*.3;
-  ctx.strokeStyle=`rgba(245,200,66,${ra})`; ctx.lineWidth=1.2;
-  const nL=ax-bq.aro.innerW/2-2, nR=ax+bq.aro.innerW/2+2, nT=ay+18, nB=ay+46;
-  for(let i=0;i<=5;i++){
-    const tx=nL+((nR-nL)/5)*i, bx=ax+(tx-ax)*.48;
-    ctx.beginPath(); ctx.moveTo(tx,nT); ctx.lineTo(bx,nB); ctx.stroke();
-  }
-  for(let i=0;i<3;i++){
-    const ry=nT+((nB-nT)/3)*i+6;
-    const xl=nL+(ax-nL)*(i*.14), xr=nR-(nR-ax)*(i*.14);
-    ctx.beginPath(); ctx.moveTo(xl,ry); ctx.lineTo(xr,ry); ctx.stroke();
-  }
-
-  /* Rayos al encestar */
-  if(gi>.3){
-    for(let r=0;r<8;r++){
-      const ang=(r/8)*Math.PI*2+bq.tick*.05, rl=18+gi*26;
-      ctx.strokeStyle=`rgba(245,200,66,${gi*.55})`; ctx.lineWidth=1.5;
-      ctx.beginPath();
-      ctx.moveTo(ax+Math.cos(ang)*28,ay+12+Math.sin(ang)*9);
-      ctx.lineTo(ax+Math.cos(ang)*(28+rl),ay+12+Math.sin(ang)*(9+rl*.32));
-      ctx.stroke();
-    }
-  }
-
-  /* Flecha de dirección */
-  if(bq.dragging){
-    const dx=bq.dragCurr.x-bq.dragStart.x, dy=bq.dragCurr.y-bq.dragStart.y, len=Math.sqrt(dx*dx+dy*dy);
-    if(len>10){
-      const nx=-dx/len, ny=-dy/len, mLen=Math.min(len,110);
-      // Trayectoria simulada (arco punteado)
-      const fuerza=len*.21;
-      let px=bq.ball.x, py=bq.ball.y, pvx=nx*fuerza, pvy=ny*fuerza;
-      ctx.fillStyle='rgba(0,212,168,.22)';
-      for(let i=0;i<14;i++){
-        px+=pvx; py+=pvy; pvy+=.36;
-        if(py>H) break;
-        const r=3.5-i*.22;
-        ctx.beginPath(); ctx.arc(px,py,Math.max(.5,r),0,Math.PI*2); ctx.fill();
-      }
-      // Línea principal
-      ctx.strokeStyle='rgba(0,212,168,.55)'; ctx.lineWidth=2; ctx.setLineDash([6,4]);
-      ctx.beginPath(); ctx.moveTo(bq.ball.x,bq.ball.y); ctx.lineTo(bq.ball.x+nx*mLen,bq.ball.y+ny*mLen); ctx.stroke();
-      ctx.setLineDash([]);
-      // Punta
-      const aX=bq.ball.x+nx*mLen, aY=bq.ball.y+ny*mLen, ang=Math.atan2(-dy,-dx);
-      ctx.fillStyle='rgba(0,212,168,.7)';
-      ctx.save(); ctx.translate(aX,aY); ctx.rotate(ang);
-      ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(-12,-5); ctx.lineTo(-12,5); ctx.closePath(); ctx.fill();
-      ctx.restore();
-    }
-  }
-
-  /* Estela en vuelo */
-  if(bq.enVuelo && bq.estela.length>1){
-    bq.estela.forEach((s,i)=>{
-      const al=(i/bq.estela.length)*.32;
-      const r=s.r*(i/bq.estela.length)*.65;
-      const sG=ctx.createRadialGradient(s.x,s.y,0, s.x,s.y,r);
-      sG.addColorStop(0,`rgba(196,168,255,${al})`);
-      sG.addColorStop(1,'rgba(155,89,245,0)');
-      ctx.fillStyle=sG;
-      ctx.beginPath(); ctx.arc(s.x,s.y,Math.max(.4,r),0,Math.PI*2); ctx.fill();
-    });
-  }
-
-  /* Pelota — sombra en suelo */
-  const bx=bq.ball.x, by=bq.ball.y, br=bq.ball.r*(bq.enVuelo?1:bq.pulso);
-  if(!bq.enVuelo){
-    const shY=H-30, shDist=Math.min(1,(by-shY)/H+.4);
-    ctx.fillStyle=`rgba(0,0,0,${.22*shDist})`;
-    ctx.beginPath(); ctx.ellipse(bx,shY+3,br*shDist*1.5,br*.28*shDist,0,0,Math.PI*2); ctx.fill();
-  }
-
-  /* Glow exterior */
-  const glS=ctx.createRadialGradient(bx,by,br*.5, bx,by,br*2.4);
-  glS.addColorStop(0,'rgba(155,89,245,.22)'); glS.addColorStop(1,'rgba(155,89,245,0)');
-  ctx.fillStyle=glS; ctx.beginPath(); ctx.arc(bx,by,br*2.4,0,Math.PI*2); ctx.fill();
-
-  /* Cuerpo de la esfera — degradado 3D */
-  const bGrad=ctx.createRadialGradient(bx-br*.3,by-br*.35,br*.04, bx,by,br);
-  bGrad.addColorStop(0,  '#ede0ff');
-  bGrad.addColorStop(.18,'#c4a8ff');
-  bGrad.addColorStop(.52,'#9b59f5');
-  bGrad.addColorStop(.82,'#5c1aad');
-  bGrad.addColorStop(1,  '#2d0070');
-  ctx.shadowColor=`#9b59f5`;
-  ctx.shadowBlur=20+(bq.enVuelo?8:Math.abs(Math.sin(bq.tick*.07))*7);
-  ctx.fillStyle=bGrad; ctx.beginPath(); ctx.arc(bx,by,br,0,Math.PI*2); ctx.fill();
-  ctx.shadowBlur=0;
-
-  /* Borde luminoso */
-  ctx.strokeStyle='rgba(196,168,255,.55)'; ctx.lineWidth=1.5;
-  ctx.beginPath(); ctx.arc(bx,by,br,0,Math.PI*2); ctx.stroke();
-
-  /* Brillo especular principal */
-  const spG=ctx.createRadialGradient(bx-br*.32,by-br*.38,0, bx-br*.18,by-br*.22,br*.54);
-  spG.addColorStop(0,'rgba(255,255,255,.72)');
-  spG.addColorStop(.5,'rgba(255,255,255,.14)');
-  spG.addColorStop(1,'rgba(255,255,255,0)');
-  ctx.fillStyle=spG; ctx.beginPath(); ctx.arc(bx,by,br,0,Math.PI*2); ctx.fill();
-
-  /* Brillo secundario */
-  ctx.fillStyle='rgba(255,255,255,.2)';
-  ctx.beginPath(); ctx.ellipse(bx+br*.36,by+br*.3,br*.18,br*.11,.8,0,Math.PI*2); ctx.fill();
-
-  /* Icono en la esfera */
-  ctx.fillStyle='rgba(255,255,255,.8)';
-  ctx.font=`${Math.round(br*.72)}px sans-serif`;
-  ctx.textAlign='center'; ctx.textBaseline='middle';
-  ctx.fillText('✨',bx,by+1);
-  ctx.textBaseline='alphabetic';
-
-  /* Texto idea actual */
-  ctx.fillStyle='rgba(196,168,255,.5)'; ctx.font='italic 9px Nunito,sans-serif'; ctx.textAlign='center';
-  ctx.fillText(bq.ideaActual, W/2, H-4);
+  ctx.fillText(`${bq.encestes}/${bq.encestesNeeded} ideas encestadas`,ax,ay-10);
+  const sopG=ctx.createLinearGradient(ax,ay,ax,ay+36);
+  sopG.addColorStop(0,'#f5c842'); sopG.addColorStop(1,'rgba(245,200,66,.2)');
+  ctx.strokeStyle=sopG; ctx.lineWidth=3; ctx.shadowColor='rgba(245,200,66,.5)'; ctx.shadowBlur=4;
+  ctx.beginPath(); ctx.moveTo(ax,ay-2); ctx.lineTo(ax,ay+36); ctx.stroke(); ctx.shadowBlur=0;
+  ctx.shadowColor=`rgba(245,200,66,${.7+gi*.3})`; ctx.shadowBlur=8+gi*20;
+  ctx.strokeStyle=`rgba(245,200,66,${.85+gi*.15})`; ctx.lineWidth=5;
+  ctx.beginPath(); ctx.ellipse(ax,ay+13,bq.aro.innerW/2+4,8,0,0,Math.PI*2); ctx.stroke();
+  ctx.strokeStyle=`rgba(255,240,150,${.4+gi*.4})`; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.ellipse(ax,ay+13,bq.aro.innerW/2,6,0,0,Math.PI*2); ctx.stroke(); ctx.shadowBlur=0;
+  const ra=.28+gi*.28; ctx.strokeStyle=`rgba(245,200,66,${ra})`; ctx.lineWidth=1.2;
+  const nL=ax-bq.aro.innerW/2-2, nR=ax+bq.aro.innerW/2+2, nT=ay+20, nB=ay+48;
+  for(let i=0;i<=5;i++){const tx=nL+((nR-nL)/5)*i,bx=ax+(tx-ax)*.48;ctx.beginPath();ctx.moveTo(tx,nT);ctx.lineTo(bx,nB);ctx.stroke();}
+  for(let i=0;i<3;i++){const ry=nT+((nB-nT)/3)*i+6;ctx.beginPath();ctx.moveTo(nL+(ax-nL)*(i*.12),ry);ctx.lineTo(nR-(nR-ax)*(i*.12),ry);ctx.stroke();}
+  if(gi>.25){for(let r=0;r<8;r++){const ang=(r/8)*Math.PI*2+bq.tick*.04,rl=16+gi*28;ctx.strokeStyle=`rgba(245,200,66,${gi*.5})`;ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(ax+Math.cos(ang)*28,ay+13+Math.sin(ang)*8);ctx.lineTo(ax+Math.cos(ang)*(28+rl),ay+13+Math.sin(ang)*(8+rl*.3));ctx.stroke();}}
+  if(bq.dragging){const dx=bq.dragCurr.x-bq.dragStart.x,dy=bq.dragCurr.y-bq.dragStart.y,len=Math.sqrt(dx*dx+dy*dy);if(len>12){const nx=-dx/len,ny=-dy/len,mL=Math.min(len,110);const fuerza=len*.21;let px=bq.ball.x,py=bq.ball.y,pvx=nx*fuerza,pvy=ny*fuerza;ctx.fillStyle='rgba(0,212,168,.2)';for(let i=0;i<14;i++){px+=pvx;py+=pvy;pvy+=.36;if(py>H)break;ctx.beginPath();ctx.arc(px,py,Math.max(.5,3.5-i*.22),0,Math.PI*2);ctx.fill();}ctx.strokeStyle='rgba(0,212,168,.55)';ctx.lineWidth=2;ctx.setLineDash([6,4]);ctx.beginPath();ctx.moveTo(bq.ball.x,bq.ball.y);ctx.lineTo(bq.ball.x+nx*mL,bq.ball.y+ny*mL);ctx.stroke();ctx.setLineDash([]);const aX=bq.ball.x+nx*mL,aY=bq.ball.y+ny*mL,ang=Math.atan2(-dy,-dx);ctx.fillStyle='rgba(0,212,168,.72)';ctx.save();ctx.translate(aX,aY);ctx.rotate(ang);ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(-12,-5);ctx.lineTo(-12,5);ctx.closePath();ctx.fill();ctx.restore();}}
+  if(bq.enVuelo&&bq.estela.length>1){bq.estela.forEach((s,i)=>{const al=(i/bq.estela.length)*.3,r=s.r*(i/bq.estela.length)*.65,sG=ctx.createRadialGradient(s.x,s.y,0,s.x,s.y,r);sG.addColorStop(0,`rgba(196,168,255,${al})`);sG.addColorStop(1,'rgba(155,89,245,0)');ctx.fillStyle=sG;ctx.beginPath();ctx.arc(s.x,s.y,Math.max(.4,r),0,Math.PI*2);ctx.fill();});}
+  const bx=bq.ball.x,by=bq.ball.y,br=bq.ball.r*(bq.enVuelo?1:bq.pulso);
+  if(!bq.enVuelo){const shY=H-30,shD=Math.min(1,(by-shY)/H+.4);ctx.fillStyle=`rgba(0,0,0,${.2*shD})`;ctx.beginPath();ctx.ellipse(bx,shY+4,br*shD*1.4,br*.26*shD,0,0,Math.PI*2);ctx.fill();}
+  const glS=ctx.createRadialGradient(bx,by,br*.5,bx,by,br*2.3);glS.addColorStop(0,'rgba(155,89,245,.22)');glS.addColorStop(1,'rgba(155,89,245,0)');ctx.fillStyle=glS;ctx.beginPath();ctx.arc(bx,by,br*2.3,0,Math.PI*2);ctx.fill();
+  const bG=ctx.createRadialGradient(bx-br*.3,by-br*.35,br*.04,bx,by,br);bG.addColorStop(0,'#ede0ff');bG.addColorStop(.2,'#c4a8ff');bG.addColorStop(.55,'#9b59f5');bG.addColorStop(.83,'#5c1aad');bG.addColorStop(1,'#2d0070');
+  ctx.shadowColor='#9b59f5';ctx.shadowBlur=20+(bq.enVuelo?6:Math.abs(Math.sin(bq.tick*.07))*8);ctx.fillStyle=bG;ctx.beginPath();ctx.arc(bx,by,br,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;
+  ctx.strokeStyle='rgba(196,168,255,.55)';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(bx,by,br,0,Math.PI*2);ctx.stroke();
+  const spG=ctx.createRadialGradient(bx-br*.32,by-br*.38,0,bx-br*.18,by-br*.22,br*.55);spG.addColorStop(0,'rgba(255,255,255,.72)');spG.addColorStop(.5,'rgba(255,255,255,.14)');spG.addColorStop(1,'rgba(255,255,255,0)');ctx.fillStyle=spG;ctx.beginPath();ctx.arc(bx,by,br,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='rgba(255,255,255,.2)';ctx.beginPath();ctx.ellipse(bx+br*.36,by+br*.3,br*.18,br*.11,.8,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='rgba(255,255,255,.82)';ctx.font=`${Math.round(br*.72)}px sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('X',bx,by+1);ctx.textBaseline='alphabetic';
+  ctx.fillStyle='rgba(196,168,255,.48)';ctx.font='italic 9px Nunito,sans-serif';ctx.textAlign='center';ctx.fillText(bq.ideaActual,W/2,H-4);
 }
+
 
 /* ══════════════════════════════════════════════════════════════
    MISIÓN 3 — Act 3.3 Ruleta
