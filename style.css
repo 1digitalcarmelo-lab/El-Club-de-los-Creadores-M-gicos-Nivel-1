@@ -2622,6 +2622,7 @@ html, body {
 /* Las pantallas de tipo flex (padres, selector, bienvenida, menu)
    necesitan display:flex cuando están activas — el JS ya lo maneja,
    pero aseguramos que el position:fixed no las rompa */
+/* Pantallas flex activas — centrado flexible con scroll seguro */
 #pantalla-padres.active,
 #pantalla-selector.active,
 #pantalla-bienvenida.active,
@@ -2629,7 +2630,10 @@ html, body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  /* justify-content: flex-start permite scroll natural en pantallas chicas */
+  justify-content: flex-start;
+  padding-top: clamp(16px, 4vh, 48px);
+  padding-bottom: 20px;
 }
 
 /* Pantallas jugables ocultas por defecto (doble seguridad con el JS) */
@@ -2644,7 +2648,9 @@ html, body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
+  padding-top: clamp(16px, 4vh, 48px);
+  padding-bottom: 20px;
 }
 
 /* Ajuste: en pantallas tipo block con contenido largo,
@@ -3230,5 +3236,44 @@ img, canvas, video, iframe {
   .tarjeta-flip {
     width: 170px;
     height: 130px;
+  }
+}
+
+/* ── Botón de audio fijo ── */
+.btn-audio-fixed {
+  position: fixed;
+  bottom: 18px;
+  right: 18px;
+  z-index: 9999;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(10,1,30,.85);
+  color: white;
+  font-size: 1.4rem;
+  cursor: pointer;
+  box-shadow: 0 2px 16px rgba(0,0,0,.4), 0 0 0 1.5px rgba(196,168,255,.25);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: transform .2s ease, box-shadow .2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+.btn-audio-fixed:hover {
+  transform: scale(1.12);
+  box-shadow: 0 4px 20px rgba(155,89,245,.4), 0 0 0 1.5px rgba(196,168,255,.4);
+}
+.btn-audio-fixed:active { transform: scale(.95); }
+
+@media (max-width: 480px) {
+  .btn-audio-fixed {
+    width: 42px;
+    height: 42px;
+    font-size: 1.2rem;
+    bottom: 14px;
+    right: 14px;
   }
 }
